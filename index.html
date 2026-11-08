@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Gehaltsplaner CB">
   <meta name="theme-color" content="#3B82F6">
-  <title>Gehaltsplaner Pro v4.9.0.2 - Option A (Option A: Tab-Lokalisiert)</title>
+  <title>Gehaltsplaner Pro v4.10.0 - Option A (Option A: Tab-Lokalisiert)</title>
   <script>
     // Async load Chart.js with fallback
     const script = document.createElement('script');
@@ -1086,6 +1086,13 @@ small { font-size: 12px; color: #999; }
     <div style="font-weight: 600; color: #333; font-size: 14px; flex: 1;">budgetplaner</div>
   </div>
 
+  <!-- v4.10.0: App-Update-Banner (erscheint nur, wenn eine neuere Version gefunden wurde) -->
+  <div id="appUpdateBanner" style="display: none; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: #dbeafe; border-bottom: 1px solid #93c5fd; color: #1e3a8a; font-size: 13px; font-weight: 600; flex-shrink: 0;">
+    <span id="appUpdateBannerText" style="flex: 1; min-width: 0;"></span>
+    <button onclick="applyAppUpdate()" class="btn-primary" style="padding: 6px 10px; font-size: 12px; flex-shrink: 0;">🔄 App Update</button>
+    <button onclick="dismissAppUpdateBanner()" style="background: none; border: none; font-size: 16px; cursor: pointer; color: inherit; padding: 0 2px; flex-shrink: 0;" aria-label="Später">✕</button>
+  </div>
+
   <!-- User Menu Modal -->
   <div class="modal" id="userMenu" style="z-index: 99998;">
     <div class="modal-content" style="max-width: 350px; width: 90%;">
@@ -1129,6 +1136,14 @@ small { font-size: 12px; color: #999; }
         <input type="file" id="importDataFile" accept=".json,application/json" style="display: none;" onchange="importDataJSON(this)">
       </div>
 
+      <!-- v4.10.0: App Update -->
+      <div style="background: #eff6ff; border: 1.5px solid #93c5fd; border-radius: 8px; padding: 0.875rem; margin-bottom: 1.5rem;">
+        <p style="font-size: 12px; font-weight: 600; color: #1e40af; margin: 0 0 0.25rem 0;">🔄 App Update</p>
+        <p style="font-size: 11px; color: #1d4ed8; line-height: 1.5; margin: 0 0 0.75rem 0;">Installiert: <strong id="appUpdateVersion">–</strong>. Sucht nach einer neueren Version und lädt sie. Deine gespeicherten Daten bleiben erhalten.</p>
+        <button onclick="checkForAppUpdate(true)" class="btn-primary" style="width: 100%; padding: 0.5rem; font-size: 12px;">🔄 App Update</button>
+        <p id="appUpdateStatus" style="font-size: 11px; line-height: 1.5; margin: 0.5rem 0 0 0; min-height: 1em; color: #1e40af;"></p>
+      </div>
+
       <!-- Buttons -->
       <div style="display: flex; gap: 0.5rem;">
         <button onclick="openNewUserModal(); closeUserMenu();" class="btn-success" style="flex: 1;">+ Neuer Benutzer</button>
@@ -1158,7 +1173,7 @@ small { font-size: 12px; color: #999; }
         <p>Jahresplanung & Budgetierung deines Einkommens</p>
       </div>
       <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
-        <div class="version">v4.9.0.2</div>
+        <div class="version">v4.10.0</div>
         <div style="font-size: 10px; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.5px;">🔒 CLOSED BETA</div>
       </div>
     </div>
@@ -1717,9 +1732,22 @@ small { font-size: 12px; color: #999; }
         </p>
       </div>
 
+      <!-- v4.10.0: FEATURE - APP UPDATE BUTTON -->
+      <div class="settings-card" style="background: #f0fdf4; border-color: #86efac; border-width: 3px;">
+        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">✨ v4.10.0 - Feature: App Update Button (aktuell)</p>
+        <p style="font-size: 12px; color: #15803d; line-height: 1.6; margin: 0;">
+          💡 <strong>Hintergrund:</strong> Eine Web-App auf dem iPhone-Home-Bildschirm hat keine Adressleiste und kein "Runterziehen zum Aktualisieren". Neue Versionen kamen dort oft nicht an, weil der Browser die alte Datei im Cache behielt.<br><br>
+          ✅ <strong>Button "🔄 App Update"</strong> im Benutzermenü (☰), mit Anzeige der installierten Version. Er holt die Seite am Cache vorbei, vergleicht die Versionsnummer und lädt bei einer neueren Version die App neu. Ohne Update: "Du hast die aktuelle Version".<br><br>
+          ✅ <strong>Automatischer Hinweis:</strong> Kurz nach dem Start und beim Zurückkehren in die App (höchstens alle 5 Minuten) wird im Stillen geprüft. Gibt es eine neuere Version, erscheint oben ein blaues Banner "Neue Version vX verfügbar" mit dem Button "App Update" (Banner mit ✕ ausblendbar).<br><br>
+          ✅ <strong>Sicherheit:</strong> Vor dem Neuladen kommt eine Abfrage. Gespeicherte Daten bleiben erhalten (localStorage wird nicht angetastet, ausstehendes Speichern wird vorher ausgeführt). Nicht gespeicherte Eingaben ("Speichern" in der Budgetplanung) gehen verloren. Nach dem Neuladen prüft die App, ob das Update angekommen ist, und meldet es oder gibt einen Hinweis.<br><br>
+          ℹ️ <strong>Hinweis:</strong> Funktioniert nur bei der gehosteten Version (GitHub Pages), nicht bei einer lokal geöffneten Datei. Dieses Update muss einmalig noch normal geladen werden (Symbol schließen/neu öffnen); ab dann kommen neue Versionen über den Button. Versionsschema: neues Feature = x.x.0, daher v4.10.0; Drag &amp; Drop folgt danach.<br><br>
+          🧪 <strong>Was testen:</strong> ☰ → Bereich "App Update" zeigt v4.10.0 ✓/✗ · Button ohne neuere Version → "Du hast die aktuelle Version" ✓/✗ · Neue Version hochladen → Banner erscheint / Button lädt neu ✓/✗ · Nach dem Neuladen "App aktualisiert auf vX" ✓/✗ · Abbrechen in der Abfrage → nichts passiert ✓/✗ · Daten nach dem Update noch da ✓/✗ · iPhone Home-Bildschirm-App ✓/✗
+        </p>
+      </div>
+
       <!-- v4.9.0.2: BUGFIX - KATEGORIE-MODAL: FELDER ZU SCHMAL AUF DEM MAC -->
-      <div class="settings-card" style="background: #fee2e2; border-color: #fca5a5; border-width: 3px;">
-        <p style="font-size: 13px; font-weight: 700; color: #991b1b; margin-bottom: 0.5rem;">🔧 v4.9.0.2 - Bugfix: Kategorie-Modal zeigte auf breiten Bildschirmen winzige Felder (aktuell)</p>
+      <div class="settings-card" style="background: #fee2e2; border-color: #fca5a5;">
+        <p style="font-size: 13px; font-weight: 700; color: #991b1b; margin-bottom: 0.5rem;">🔧 v4.9.0.2 - Bugfix: Kategorie-Modal zeigte auf breiten Bildschirmen winzige Felder</p>
         <p style="font-size: 12px; color: #b91c1c; line-height: 1.6; margin: 0;">
           🐛 <strong>Problem:</strong> Auf dem Mac waren die Eingabefelder im Kategorie-Modal zusammengequetscht (kleine Box, Feld kaum erkennbar). Ursache: Die Seiten-Breakpoints erzwingen für jedes <code>.subcategory-grid</code> bei breiten Fenstern 3 bis 5 Spalten. Im schmalen Modal wurde dadurch jedes Feld nur noch wenige Pixel breit.<br><br>
           ✅ <strong>Fix:</strong> Das Raster im Modal ist jetzt unabhängig von der Fensterbreite: <code>repeat(auto-fill, minmax(220px, 1fr))</code>. Auf dem Mac 2 Spalten, auf dem Handy 1 Spalte, Felder in voller Breite. Regel nur für <code>#katModalBody</code>; die restliche App bleibt unverändert.<br><br>
@@ -8376,7 +8404,7 @@ function executeDeleteAllSparkonten(year) {
 // v4.8.3: DATEN-EXPORT / -IMPORT (JSON)
 // ============================================================
 const BACKUP_APP_NAME = 'Gehaltsplaner Pro';
-const BACKUP_APP_VERSION = '4.9.0.2';
+const BACKUP_APP_VERSION = '4.10.0';
 
 // Meldung nach dem Schließen des Menüs zeigen (alert() wird von offenen Modals blockiert)
 function dataBackupAlert(message) {
@@ -8519,8 +8547,149 @@ function checkImportAfterReload() {
   }
 }
 
+// ============================================================
+// v4.10.0: APP UPDATE (Version prüfen, Cache umgehen, neu laden)
+// ============================================================
+const APP_VERSION = BACKUP_APP_VERSION;
+let appUpdateRemoteVersion = null;   // gefundene neuere Version (oder null)
+let appUpdateLastCheck = 0;
+let appUpdateBusy = false;
+let appUpdateBannerDismissed = false;
+
+function compareVersions(a, b) {
+  const x = String(a).split('.').map(n => parseInt(n, 10) || 0);
+  const y = String(b).split('.').map(n => parseInt(n, 10) || 0);
+  for (let i = 0; i < Math.max(x.length, y.length); i++) {
+    const d = (x[i] || 0) - (y[i] || 0);
+    if (d !== 0) return d > 0 ? 1 : -1;
+  }
+  return 0;
+}
+
+function setAppUpdateStatus(text) {
+  const el = document.getElementById('appUpdateStatus');
+  if (el) el.textContent = text || '';
+}
+
+function showAppUpdateBanner(show) {
+  const banner = document.getElementById('appUpdateBanner');
+  if (!banner) return;
+  if (show && appUpdateRemoteVersion && !appUpdateBannerDismissed) {
+    const text = document.getElementById('appUpdateBannerText');
+    if (text) text.textContent = 'Neue Version v' + appUpdateRemoteVersion + ' verfügbar';
+    banner.style.display = 'flex';
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+function dismissAppUpdateBanner() {
+  appUpdateBannerDismissed = true;
+  showAppUpdateBanner(false);
+}
+
+// Holt die Seite am Cache vorbei (cache: 'reload' aktualisiert auch den Browser-Cache dieser Adresse)
+// und liest die Versionsnummer aus dem <title>.
+async function fetchRemoteVersion() {
+  if (location.protocol !== 'http:' && location.protocol !== 'https:') {
+    throw new Error('Nur bei der gehosteten Version möglich');
+  }
+  const res = await fetch(location.origin + location.pathname, { cache: 'reload' });
+  if (!res.ok) throw new Error('Server-Antwort ' + res.status);
+  const text = await res.text();
+  const match = /<title>Gehaltsplaner Pro v([0-9]+(?:\.[0-9]+)*)/.exec(text);
+  if (!match) throw new Error('Versionsnummer nicht gefunden');
+  return match[1];
+}
+
+async function checkForAppUpdate(manual) {
+  if (appUpdateBusy) return;
+  appUpdateBusy = true;
+  if (manual) setAppUpdateStatus('🔍 Suche nach Update …');
+  try {
+    const remote = await fetchRemoteVersion();
+    appUpdateLastCheck = Date.now();
+    if (compareVersions(remote, APP_VERSION) > 0) {
+      appUpdateRemoteVersion = remote;
+      appUpdateBannerDismissed = false;
+      showAppUpdateBanner(true);
+      if (manual) {
+        setAppUpdateStatus('⬇️ Neue Version v' + remote + ' gefunden');
+        appUpdateBusy = false;
+        applyAppUpdate();
+        return;
+      }
+    } else {
+      appUpdateRemoteVersion = null;
+      showAppUpdateBanner(false);
+      if (manual) setAppUpdateStatus('✅ Du hast die aktuelle Version (v' + APP_VERSION + ').');
+    }
+  } catch (err) {
+    console.warn('App-Update-Prüfung:', err);
+    if (manual) setAppUpdateStatus('⚠️ Prüfung nicht möglich: ' + err.message + '. Bitte Internetverbindung prüfen.');
+  }
+  appUpdateBusy = false;
+}
+
+function applyAppUpdate() {
+  const target = appUpdateRemoteVersion;
+  if (!target) return;
+  closeUserMenu(); // Menü zuerst schließen, damit confirm() nicht vom Overlay blockiert wird
+  setTimeout(() => {
+    const ok = confirm(
+      'App Update auf v' + target + ' installieren?\n\n' +
+      'Die App wird neu geladen. Deine gespeicherten Daten bleiben erhalten. ' +
+      'Nicht gespeicherte Eingaben (Button "Speichern" in der Budgetplanung) gehen verloren.'
+    );
+    if (!ok) return;
+    try {
+      clearTimeout(saveTimeout); // ausstehendes Debounce-Speichern direkt ausführen
+      if (allData && allData.users && Object.keys(allData.users).length > 0) {
+        localStorage.setItem('haushaltsbuch_multiuser', JSON.stringify(allData));
+      }
+      sessionStorage.setItem('gp_update_expected', target); // Marker für die Prüfung nach dem Neuladen
+    } catch (e) {
+      console.warn('Vor dem Update nicht möglich zu sichern:', e);
+    }
+    location.reload();
+  }, 100);
+}
+
+// Nach dem Neuladen: hat das Update geklappt?
+function checkAppUpdateAfterReload() {
+  try {
+    const expected = sessionStorage.getItem('gp_update_expected');
+    if (!expected) return;
+    sessionStorage.removeItem('gp_update_expected');
+    if (compareVersions(APP_VERSION, expected) >= 0) {
+      setTimeout(() => showSuccessMessage('✅ App aktualisiert auf v' + APP_VERSION), 400);
+    } else {
+      setTimeout(() => alert(
+        '⚠️ Das Update wurde noch nicht geladen (es läuft weiterhin v' + APP_VERSION + ').\n\n' +
+        'Schließe die App vollständig (App-Fenster nach oben wischen) und öffne sie neu. Danach "App Update" erneut antippen.'
+      ), 400);
+    }
+  } catch (e) {
+    console.warn('checkAppUpdateAfterReload:', e);
+  }
+}
+
+function initAppUpdate() {
+  const versionEl = document.getElementById('appUpdateVersion');
+  if (versionEl) versionEl.textContent = 'v' + APP_VERSION;
+  checkAppUpdateAfterReload();
+  // Automatische, stille Prüfung: kurz nach dem Start und beim Zurückkehren in die App
+  setTimeout(() => checkForAppUpdate(false), 2500);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && Date.now() - appUpdateLastCheck > 5 * 60 * 1000) {
+      checkForAppUpdate(false);
+    }
+  });
+}
+
 initUsers();
 checkImportAfterReload();
+initAppUpdate();
 </script>
 
 </body>
