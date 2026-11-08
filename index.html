@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Gehaltsplaner CB">
   <meta name="theme-color" content="#3B82F6">
-  <title>Gehaltsplaner Pro v4.9.0.1 - Option A (Option A: Tab-Lokalisiert)</title>
+  <title>Gehaltsplaner Pro v4.9.0.2 - Option A (Option A: Tab-Lokalisiert)</title>
   <script>
     // Async load Chart.js with fallback
     const script = document.createElement('script');
@@ -79,6 +79,10 @@ select { padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; font-siz
 .kat-card-right { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
 .kat-card-total { font-size: 15px; font-weight: 700; color: #3B82F6; }
 .kat-card-chev { font-size: 22px; line-height: 1; opacity: 0.4; }
+/* v4.9.0.2: Raster im Modal unabhängig von den Seiten-Breakpoints (die 3-5 Spalten gelten nur für die breite Seite) */
+#katModalBody .subcategory-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+#katModalBody .subcategory-box { min-width: 0; }
+#katModalBody .subcategory-box input { min-width: 0; }
 input[type="number"], input[type="text"] { width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; -webkit-appearance: none; }
 .user-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin-bottom: 0.75rem; }
 .user-card { background: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; padding: 0.75rem; text-align: center; }
@@ -1154,7 +1158,7 @@ small { font-size: 12px; color: #999; }
         <p>Jahresplanung & Budgetierung deines Einkommens</p>
       </div>
       <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
-        <div class="version">v4.9.0.1</div>
+        <div class="version">v4.9.0.2</div>
         <div style="font-size: 10px; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.5px;">🔒 CLOSED BETA</div>
       </div>
     </div>
@@ -1713,9 +1717,19 @@ small { font-size: 12px; color: #999; }
         </p>
       </div>
 
-      <!-- v4.9.0.1: BUGFIX - MODAL-BUTTONS AUF DEM IPHONE ABGESCHNITTEN -->
+      <!-- v4.9.0.2: BUGFIX - KATEGORIE-MODAL: FELDER ZU SCHMAL AUF DEM MAC -->
       <div class="settings-card" style="background: #fee2e2; border-color: #fca5a5; border-width: 3px;">
-        <p style="font-size: 13px; font-weight: 700; color: #991b1b; margin-bottom: 0.5rem;">🔧 v4.9.0.1 - Bugfix: Fenster (Modals) auf dem iPhone unten abgeschnitten (aktuell)</p>
+        <p style="font-size: 13px; font-weight: 700; color: #991b1b; margin-bottom: 0.5rem;">🔧 v4.9.0.2 - Bugfix: Kategorie-Modal zeigte auf breiten Bildschirmen winzige Felder (aktuell)</p>
+        <p style="font-size: 12px; color: #b91c1c; line-height: 1.6; margin: 0;">
+          🐛 <strong>Problem:</strong> Auf dem Mac waren die Eingabefelder im Kategorie-Modal zusammengequetscht (kleine Box, Feld kaum erkennbar). Ursache: Die Seiten-Breakpoints erzwingen für jedes <code>.subcategory-grid</code> bei breiten Fenstern 3 bis 5 Spalten. Im schmalen Modal wurde dadurch jedes Feld nur noch wenige Pixel breit.<br><br>
+          ✅ <strong>Fix:</strong> Das Raster im Modal ist jetzt unabhängig von der Fensterbreite: <code>repeat(auto-fill, minmax(220px, 1fr))</code>. Auf dem Mac 2 Spalten, auf dem Handy 1 Spalte, Felder in voller Breite. Regel nur für <code>#katModalBody</code>; die restliche App bleibt unverändert.<br><br>
+          🧪 <strong>Was testen:</strong> Mac: Modal öffnen, Felder gut lesbar und bedienbar ✓/✗ · Fixkosten-Posten (📌) mit Badge und Eingabefeld sauber ✓/✗ · iPhone: 1 Spalte ✓/✗ · Kategorie mit mehreren Posten: 2 Spalten am Mac ✓/✗
+        </p>
+      </div>
+
+      <!-- v4.9.0.1: BUGFIX - MODAL-BUTTONS AUF DEM IPHONE ABGESCHNITTEN -->
+      <div class="settings-card" style="background: #fee2e2; border-color: #fca5a5;">
+        <p style="font-size: 13px; font-weight: 700; color: #991b1b; margin-bottom: 0.5rem;">🔧 v4.9.0.1 - Bugfix: Fenster (Modals) auf dem iPhone unten abgeschnitten</p>
         <p style="font-size: 12px; color: #b91c1c; line-height: 1.6; margin: 0;">
           🐛 <strong>Problem:</strong> Auf dem iPhone waren die Buttons unten in Fenstern (z. B. "Neuer Benutzer" → "Erstellen") nicht sichtbar und nicht antippbar. Neue Benutzer konnten dadurch nicht gespeichert werden. Ursache: <code>.modal</code> hatte <code>height: 100vh</code>; auf iOS ist <code>100vh</code> höher als der sichtbare Bereich (Safari-Leiste, Home-Indikator), der untere Teil des Fensters lag außerhalb des Bildschirms.<br><br>
           ✅ <strong>Fix 1:</strong> <code>.modal</code> füllt jetzt den sichtbaren Bereich (<code>top: 0; bottom: 0</code> statt <code>100vh</code>).<br><br>
@@ -8362,7 +8376,7 @@ function executeDeleteAllSparkonten(year) {
 // v4.8.3: DATEN-EXPORT / -IMPORT (JSON)
 // ============================================================
 const BACKUP_APP_NAME = 'Gehaltsplaner Pro';
-const BACKUP_APP_VERSION = '4.9.0.1';
+const BACKUP_APP_VERSION = '4.9.0.2';
 
 // Meldung nach dem Schließen des Menüs zeigen (alert() wird von offenen Modals blockiert)
 function dataBackupAlert(message) {
