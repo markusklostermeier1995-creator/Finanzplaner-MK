@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Gehaltsplaner CB">
   <meta name="theme-color" content="#3B82F6">
-  <title>Gehaltsplaner Pro v4.10.0 - Option A (Option A: Tab-Lokalisiert)</title>
+  <title>Gehaltsplaner Pro v4.11.0 - Option A (Option A: Tab-Lokalisiert)</title>
   <script>
     // Async load Chart.js with fallback
     const script = document.createElement('script');
@@ -78,6 +78,10 @@ select { padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; font-siz
 .kat-card-meta { font-size: 11px; opacity: 0.6; margin-top: 2px; }
 .kat-card-right { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
 .kat-card-total { font-size: 15px; font-weight: 700; color: #3B82F6; }
+.kat-dragging { position: fixed !important; z-index: 99990; margin: 0 !important; box-shadow: 0 10px 30px rgba(0,0,0,.25); transform: scale(1.02); opacity: .95; pointer-events: none; }
+.kat-placeholder { border: 2px dashed #93c5fd; border-radius: 8px; box-sizing: border-box; margin-bottom: 0.75rem; background: rgba(59,130,246,.06); }
+body.kat-drag-active { cursor: grabbing; -webkit-user-select: none; user-select: none; }
+.kat-order-hint { font-size: 11px; opacity: .6; margin: 0 0 .5rem 0; }
 .kat-card-chev { font-size: 22px; line-height: 1; opacity: 0.4; }
 /* v4.9.0.2: Raster im Modal unabhängig von den Seiten-Breakpoints (die 3-5 Spalten gelten nur für die breite Seite) */
 #katModalBody .subcategory-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
@@ -1173,7 +1177,7 @@ small { font-size: 12px; color: #999; }
         <p>Jahresplanung & Budgetierung deines Einkommens</p>
       </div>
       <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
-        <div class="version">v4.10.0</div>
+        <div class="version">v4.11.0</div>
         <div style="font-size: 10px; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.5px;">🔒 CLOSED BETA</div>
       </div>
     </div>
@@ -1732,9 +1736,20 @@ small { font-size: 12px; color: #999; }
         </p>
       </div>
 
-      <!-- v4.10.0: FEATURE - APP UPDATE BUTTON -->
+      <!-- v4.11.0: FEATURE - DRAG & DROP SORTIERUNG -->
       <div class="settings-card" style="background: #f0fdf4; border-color: #86efac; border-width: 3px;">
-        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">✨ v4.10.0 - Feature: App Update Button (aktuell)</p>
+        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">✨ v4.11.0 - Feature: Kategorien per Drag &amp; Drop sortieren (aktuell)</p>
+        <p style="font-size: 12px; color: #15803d; line-height: 1.6; margin: 0;">
+          ✅ <strong>Budgetplanung:</strong> Die Kategorie-Cards lassen sich per Ziehen sortieren. Am Handy Card ca. 0,4 s gedrückt halten, dann verschieben. Am Mac einfach ziehen.<br>
+          ✅ <strong>Pro Benutzer gespeichert</strong> und im JSON-Export enthalten. Gilt nur für die Budgetplanung, andere Tabs behalten ihre Reihenfolge.<br>
+          ✅ <strong>Neue Kategorien</strong> erscheinen automatisch am Ende.<br>
+          🧪 <strong>Was testen:</strong> Card verschieben, Seite neu laden → Reihenfolge bleibt · Tippen öffnet weiterhin das Fenster · Scrollen am Handy funktioniert normal
+        </p>
+      </div>
+
+      <!-- v4.10.0: FEATURE - APP UPDATE BUTTON -->
+      <div class="settings-card" style="background: #f0fdf4; border-color: #86efac;">
+        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">✨ v4.10.0 - Feature: App Update Button</p>
         <p style="font-size: 12px; color: #15803d; line-height: 1.6; margin: 0;">
           💡 <strong>Hintergrund:</strong> Eine Web-App auf dem iPhone-Home-Bildschirm hat keine Adressleiste und kein "Runterziehen zum Aktualisieren". Neue Versionen kamen dort oft nicht an, weil der Browser die alte Datei im Cache behielt.<br><br>
           ✅ <strong>Button "🔄 App Update"</strong> im Benutzermenü (☰), mit Anzeige der installierten Version. Er holt die Seite am Cache vorbei, vergleicht die Versionsnummer und lädt bei einer neueren Version die App neu. Ohne Update: "Du hast die aktuelle Version".<br><br>
@@ -6198,7 +6213,9 @@ function renderInputs() {
     let html = '';
     // v4.6.2: Dynamische Kategorien statt hardcodierter CATEGORIES
     const kategorien = getKategorien();
-    kategorien.forEach((kat, katIdx) => {
+    if (kategorien.length > 1) html += `<p class="kat-order-hint">↕ Card gedrückt halten (am Mac: ziehen), um die Reihenfolge zu ändern</p>`;
+    getKategorieBudgetOrder(kategorien).forEach(katIdx => {
+      const kat = kategorien[katIdx];
       const catName = kat.name;
       let subHtml = '';
       
@@ -6335,6 +6352,7 @@ function updateKategorieCardTotals() {
 }
 
 function openKatModal(idx) {
+  if (typeof katDrag !== 'undefined' && Date.now() < katDrag.suppressClickUntil) return;
   try {
     const grid = document.getElementById('katGrid_' + idx);
     const body = document.getElementById('katModalBody');
@@ -6387,6 +6405,128 @@ function closeKatModal() {
 document.addEventListener('keydown', function (e) {
   if (e.key === 'Escape' && activeKatIdx !== null) closeKatModal();
 });
+
+// ===== v4.11.0: DRAG & DROP SORTIERUNG DER BUDGET-CARDS =====
+function katKey(kat, idx) { return kat && kat.id ? String(kat.id) : 'idx' + idx; }
+function getKategorieBudgetOrder(kategorien) {
+  const user = allData.users[currentUser];
+  const saved = (user && Array.isArray(user.budgetOrder)) ? user.budgetOrder : [];
+  const result = [];
+  saved.forEach(key => {
+    const i = kategorien.findIndex((k, n) => katKey(k, n) === key);
+    if (i >= 0 && result.indexOf(i) < 0) result.push(i);
+  });
+  kategorien.forEach((k, n) => { if (result.indexOf(n) < 0) result.push(n); });
+  return result;
+}
+function saveKategorieBudgetOrder() {
+  const kategorien = getKategorien();
+  const cards = document.querySelectorAll('#categoriesContainer .kat-card');
+  const order = [];
+  cards.forEach(c => { const i = parseInt(c.getAttribute('data-kat'), 10); if (kategorien[i]) order.push(katKey(kategorien[i], i)); });
+  const user = allData.users[currentUser];
+  const old = JSON.stringify(user.budgetOrder || []);
+  if (JSON.stringify(order) === old) return false;
+  user.budgetOrder = order;
+  saveAllData();
+  return true;
+}
+const katDrag = { pending: null, active: null, suppressClickUntil: 0, raf: null, scrollSpeed: 0, lastY: 0, timer: null, startX: 0, startY: 0, kind: null };
+function katDragBegin(card, x, y) {
+  const r = card.getBoundingClientRect();
+  const ph = document.createElement('div');
+  ph.className = 'kat-placeholder';
+  ph.style.height = r.height + 'px';
+  card.parentNode.insertBefore(ph, card);
+  katDrag.active = { card, ph, grabDy: y - r.top, left: r.left, width: r.width, startOrder: Array.from(document.querySelectorAll('#categoriesContainer .kat-card')).map(c => c.getAttribute('data-kat')).join(',') };
+  card.classList.add('kat-dragging');
+  card.style.left = r.left + 'px'; card.style.width = r.width + 'px'; card.style.top = r.top + 'px';
+  document.body.classList.add('kat-drag-active');
+  if (navigator.vibrate) try { navigator.vibrate(15); } catch (e) {}
+  katDrag.lastY = y;
+}
+function katDragReposition(y) {
+  const a = katDrag.active; if (!a) return;
+  const others = Array.from(document.querySelectorAll('#categoriesContainer .kat-card:not(.kat-dragging)'));
+  let before = null;
+  for (const c of others) { const r = c.getBoundingClientRect(); if (y < r.top + r.height / 2) { before = c; break; } }
+  if (before) { if (a.ph.nextSibling !== before) before.parentNode.insertBefore(a.ph, before); }
+  else { const last = others[others.length - 1]; if (last && last.nextSibling !== a.ph) last.parentNode.insertBefore(a.ph, last.nextSibling); }
+}
+function katDragMove(y) {
+  const a = katDrag.active; if (!a) return;
+  katDrag.lastY = y;
+  a.card.style.top = (y - a.grabDy) + 'px';
+  katDragReposition(y);
+  const vh = window.innerHeight, edge = 70;
+  katDrag.scrollSpeed = y < edge ? -Math.ceil((edge - y) / 5) : (y > vh - edge ? Math.ceil((y - (vh - edge)) / 5) : 0);
+  if (katDrag.scrollSpeed && !katDrag.raf) katDrag.raf = requestAnimationFrame(katAutoScroll);
+}
+function katAutoScroll() {
+  katDrag.raf = null;
+  if (!katDrag.active || !katDrag.scrollSpeed) return;
+  const sc = document.querySelector('.content') || document.scrollingElement;
+  const useWin = !sc || sc.scrollHeight <= sc.clientHeight;
+  if (useWin) window.scrollBy(0, katDrag.scrollSpeed); else sc.scrollTop += katDrag.scrollSpeed;
+  katDragReposition(katDrag.lastY);
+  katDrag.raf = requestAnimationFrame(katAutoScroll);
+}
+function katDragEnd() {
+  clearTimeout(katDrag.timer); katDrag.timer = null;
+  katDrag.pending = null;
+  const a = katDrag.active;
+  if (!a) return;
+  katDrag.active = null; katDrag.scrollSpeed = 0;
+  if (katDrag.raf) { cancelAnimationFrame(katDrag.raf); katDrag.raf = null; }
+  a.ph.parentNode.insertBefore(a.card, a.ph);
+  a.ph.remove();
+  a.card.classList.remove('kat-dragging');
+  a.card.style.left = a.card.style.top = a.card.style.width = '';
+  document.body.classList.remove('kat-drag-active');
+  katDrag.suppressClickUntil = Date.now() + 400;
+  if (saveKategorieBudgetOrder()) showSuccessMessage('Reihenfolge gespeichert');
+}
+function initKatDragDrop() {
+  const cont = document.getElementById('categoriesContainer');
+  if (!cont || cont._katDnd) return;
+  cont._katDnd = true;
+  const cardOf = t => t && t.closest ? t.closest('.kat-card') : null;
+  // Touch: Langdruck
+  cont.addEventListener('touchstart', e => {
+    const card = cardOf(e.target); if (!card || e.touches.length !== 1) return;
+    const t = e.touches[0];
+    katDrag.startX = t.clientX; katDrag.startY = t.clientY; katDrag.kind = 'touch'; katDrag.pending = card;
+    clearTimeout(katDrag.timer);
+    katDrag.timer = setTimeout(() => { if (katDrag.pending === card) { katDrag.pending = null; katDragBegin(card, katDrag.startX, katDrag.startY); } }, 400);
+  }, { passive: true });
+  document.addEventListener('touchmove', e => {
+    const t = e.touches[0];
+    if (katDrag.active) { e.preventDefault(); katDragMove(t.clientY); return; }
+    if (katDrag.pending && Math.hypot(t.clientX - katDrag.startX, t.clientY - katDrag.startY) > 10) { clearTimeout(katDrag.timer); katDrag.pending = null; }
+  }, { passive: false });
+  const touchEnd = e => {
+    clearTimeout(katDrag.timer); katDrag.pending = null;
+    if (katDrag.active) { if (e.cancelable) e.preventDefault(); katDragEnd(); }
+  };
+  document.addEventListener('touchend', touchEnd, { passive: false });
+  document.addEventListener('touchcancel', touchEnd, { passive: false });
+  // Maus
+  cont.addEventListener('mousedown', e => {
+    if (e.button !== 0) return;
+    const card = cardOf(e.target); if (!card) return;
+    katDrag.startX = e.clientX; katDrag.startY = e.clientY; katDrag.kind = 'mouse'; katDrag.pending = card;
+  });
+  document.addEventListener('mousemove', e => {
+    if (katDrag.kind !== 'mouse') return;
+    if (katDrag.active) { katDragMove(e.clientY); return; }
+    if (katDrag.pending && Math.hypot(e.clientX - katDrag.startX, e.clientY - katDrag.startY) > 6) {
+      const c = katDrag.pending; katDrag.pending = null; katDragBegin(c, katDrag.startX, katDrag.startY); katDragMove(e.clientY);
+    }
+  });
+  document.addEventListener('mouseup', () => { if (katDrag.kind === 'mouse') { katDrag.pending = null; katDragEnd(); } });
+  cont.addEventListener('contextmenu', e => { if (katDrag.pending || katDrag.active) e.preventDefault(); });
+  cont.addEventListener('dragstart', e => e.preventDefault());
+}
 
 function getMonthlyStandard() {
   if (!allData.users[currentUser].monthlyStandard) allData.users[currentUser].monthlyStandard = {};
@@ -8404,7 +8544,7 @@ function executeDeleteAllSparkonten(year) {
 // v4.8.3: DATEN-EXPORT / -IMPORT (JSON)
 // ============================================================
 const BACKUP_APP_NAME = 'Gehaltsplaner Pro';
-const BACKUP_APP_VERSION = '4.10.0';
+const BACKUP_APP_VERSION = '4.11.0';
 
 // Meldung nach dem Schließen des Menüs zeigen (alert() wird von offenen Modals blockiert)
 function dataBackupAlert(message) {
@@ -8690,6 +8830,7 @@ function initAppUpdate() {
 initUsers();
 checkImportAfterReload();
 initAppUpdate();
+initKatDragDrop();
 </script>
 
 </body>
