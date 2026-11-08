@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Gehaltsplaner CB">
   <meta name="theme-color" content="#3B82F6">
-  <title>Gehaltsplaner Pro v4.9.0 - Option A (Option A: Tab-Lokalisiert)</title>
+  <title>Gehaltsplaner Pro v4.9.0.1 - Option A (Option A: Tab-Lokalisiert)</title>
   <script>
     // Async load Chart.js with fallback
     const script = document.createElement('script');
@@ -84,7 +84,7 @@ input[type="number"], input[type="text"] { width: 100%; padding: 6px; border: 1p
 .user-card { background: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; padding: 0.75rem; text-align: center; }
 .user-card-name { font-size: 14px; font-weight: 600; color: #333; margin-bottom: 0.25rem; }
 .user-card-data { font-size: 11px; color: #666; margin-bottom: 0.5rem; }
-.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: rgba(0,0,0,0.5); z-index: 99999; align-items: center; justify-content: center; padding: 1rem; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.modal { display: none; position: fixed; top: 0; bottom: 0; left: 0; width: 100%; height: auto; background: rgba(0,0,0,0.5); z-index: 99999; align-items: center; justify-content: center; padding: 1rem; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 .modal.active { display: flex; }
 @media (max-width: 600px) {
   .modal { 
@@ -114,8 +114,10 @@ input[type="number"], input[type="text"] { width: 100%; padding: 6px; border: 1p
   .modal-content { 
     width: 100% !important; 
     max-width: 100% !important; 
-    max-height: 88vh; 
+    max-height: 88vh;
+    max-height: 88dvh;
     padding: 1.25rem;
+    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
     margin: 0 !important;
     border-radius: 20px 20px 0 0;
   }
@@ -1152,7 +1154,7 @@ small { font-size: 12px; color: #999; }
         <p>Jahresplanung & Budgetierung deines Einkommens</p>
       </div>
       <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
-        <div class="version">v4.9.0</div>
+        <div class="version">v4.9.0.1</div>
         <div style="font-size: 10px; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.5px;">🔒 CLOSED BETA</div>
       </div>
     </div>
@@ -1711,9 +1713,21 @@ small { font-size: 12px; color: #999; }
         </p>
       </div>
 
+      <!-- v4.9.0.1: BUGFIX - MODAL-BUTTONS AUF DEM IPHONE ABGESCHNITTEN -->
+      <div class="settings-card" style="background: #fee2e2; border-color: #fca5a5; border-width: 3px;">
+        <p style="font-size: 13px; font-weight: 700; color: #991b1b; margin-bottom: 0.5rem;">🔧 v4.9.0.1 - Bugfix: Fenster (Modals) auf dem iPhone unten abgeschnitten (aktuell)</p>
+        <p style="font-size: 12px; color: #b91c1c; line-height: 1.6; margin: 0;">
+          🐛 <strong>Problem:</strong> Auf dem iPhone waren die Buttons unten in Fenstern (z. B. "Neuer Benutzer" → "Erstellen") nicht sichtbar und nicht antippbar. Neue Benutzer konnten dadurch nicht gespeichert werden. Ursache: <code>.modal</code> hatte <code>height: 100vh</code>; auf iOS ist <code>100vh</code> höher als der sichtbare Bereich (Safari-Leiste, Home-Indikator), der untere Teil des Fensters lag außerhalb des Bildschirms.<br><br>
+          ✅ <strong>Fix 1:</strong> <code>.modal</code> füllt jetzt den sichtbaren Bereich (<code>top: 0; bottom: 0</code> statt <code>100vh</code>).<br><br>
+          ✅ <strong>Fix 2:</strong> Auf dem Handy bekommt das Fenster unten zusätzlich <code>env(safe-area-inset-bottom)</code> als Abstand und <code>max-height</code> in <code>dvh</code>, damit die Buttons über der Home-Leiste liegen.<br><br>
+          ℹ️ Gilt für alle Fenster der App (Benutzer, Bearbeiten, Kategorien, Posten, Kategorie-Modal usw.). Am Mac ändert sich nichts.<br><br>
+          🧪 <strong>Was testen:</strong> iPhone: "Neuer Benutzer" → Buttons "Abbrechen/Erstellen" sichtbar, Benutzer wird erstellt ✓/✗ · Benutzer bearbeiten → Speichern erreichbar ✓/✗ · Kategorie-Modal (Budgetplanung) → "Fertig" erreichbar ✓/✗ · Mit geöffneter Tastatur: Buttons erreichbar (scrollen) ✓/✗ · Mac: Fenster wie bisher ✓/✗
+        </p>
+      </div>
+
       <!-- v4.9.0: FEATURE - KATEGORIE CARD → MODAL -->
-      <div class="settings-card" style="background: #f0fdf4; border-color: #86efac; border-width: 3px;">
-        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">✨ v4.9.0 - Feature: Budgetplanung Card→Modal für Kategorien (aktuell)</p>
+      <div class="settings-card" style="background: #f0fdf4; border-color: #86efac;">
+        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">✨ v4.9.0 - Feature: Budgetplanung Card→Modal für Kategorien</p>
         <p style="font-size: 12px; color: #15803d; line-height: 1.6; margin: 0;">
           ✅ <strong>Kompakte Kategorie-Cards:</strong> In der Budgetplanung zeigt jede Kategorie nur noch Name, Anzahl der Posten und die Summe. Die Seite ist deutlich kürzer und übersichtlicher.<br><br>
           ✅ <strong>Klick öffnet ein Modal:</strong> Alle Posten (inkl. 📌 Fixkosten und 🏦 Sparkonten dieser Kategorie) mit ihren Eingabefeldern. Schließen über "Fertig", ✕, Tipp auf den Hintergrund oder Esc.<br><br>
@@ -8348,7 +8362,7 @@ function executeDeleteAllSparkonten(year) {
 // v4.8.3: DATEN-EXPORT / -IMPORT (JSON)
 // ============================================================
 const BACKUP_APP_NAME = 'Gehaltsplaner Pro';
-const BACKUP_APP_VERSION = '4.9.0';
+const BACKUP_APP_VERSION = '4.9.0.1';
 
 // Meldung nach dem Schließen des Menüs zeigen (alert() wird von offenen Modals blockiert)
 function dataBackupAlert(message) {
