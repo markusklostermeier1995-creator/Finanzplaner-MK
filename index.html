@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Gehaltsplaner CB">
   <meta name="theme-color" content="#3B82F6">
-  <title>Gehaltsplaner Pro v4.8.3.2 - Option A (Option A: Tab-Lokalisiert)</title>
+  <title>Gehaltsplaner Pro v4.9.0 - Option A (Option A: Tab-Lokalisiert)</title>
   <script>
     // Async load Chart.js with fallback
     const script = document.createElement('script');
@@ -70,6 +70,15 @@ select { padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; font-siz
 .subcategory-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
 .subcategory-box { background: #f9f9f9; border: 1px solid #ddd; border-radius: 6px; padding: 0.5rem; }
 .subcat-label { font-size: 11px; color: #666; font-weight: 500; margin-bottom: 4px; }
+/* v4.9.0: Kategorie-Cards (Card→Modal) */
+.kat-card { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.875rem 1rem; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.kat-card:active { opacity: 0.7; }
+.kat-card-main { min-width: 0; }
+.kat-card-name { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kat-card-meta { font-size: 11px; opacity: 0.6; margin-top: 2px; }
+.kat-card-right { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+.kat-card-total { font-size: 15px; font-weight: 700; color: #3B82F6; }
+.kat-card-chev { font-size: 22px; line-height: 1; opacity: 0.4; }
 input[type="number"], input[type="text"] { width: 100%; padding: 6px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; -webkit-appearance: none; }
 .user-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin-bottom: 0.75rem; }
 .user-card { background: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; padding: 0.75rem; text-align: center; }
@@ -1121,6 +1130,21 @@ small { font-size: 12px; color: #999; }
     </div>
   </div>
 
+  <!-- v4.9.0: Kategorie-Modal (Budgetplanung) -->
+  <div class="modal" id="katModal" style="z-index: 99997;" onclick="if (event.target === this) closeKatModal()">
+    <div class="modal-content" style="max-width: 560px; width: 94%;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem; margin-bottom: 1rem;">
+        <div style="min-width: 0;">
+          <h2 id="katModalTitle" style="margin: 0; font-size: 18px;"></h2>
+          <div id="katModalSum" style="font-size: 12px; opacity: 0.7; margin-top: 2px;"></div>
+        </div>
+        <button onclick="closeKatModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; padding: 0; color: inherit; flex-shrink: 0;" aria-label="Schließen">✕</button>
+      </div>
+      <div id="katModalBody" oninput="updateKategorieCardTotals()"></div>
+      <button onclick="closeKatModal()" class="btn-primary" style="width: 100%; margin-top: 1rem; padding: 0.75rem; font-size: 14px;">Fertig</button>
+    </div>
+  </div>
+
   <div class="content">
     <div class="header">
       <div>
@@ -1128,7 +1152,7 @@ small { font-size: 12px; color: #999; }
         <p>Jahresplanung & Budgetierung deines Einkommens</p>
       </div>
       <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
-        <div class="version">v4.8.3.2</div>
+        <div class="version">v4.9.0</div>
         <div style="font-size: 10px; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.5px;">🔒 CLOSED BETA</div>
       </div>
     </div>
@@ -1687,9 +1711,21 @@ small { font-size: 12px; color: #999; }
         </p>
       </div>
 
+      <!-- v4.9.0: FEATURE - KATEGORIE CARD → MODAL -->
+      <div class="settings-card" style="background: #f0fdf4; border-color: #86efac; border-width: 3px;">
+        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">✨ v4.9.0 - Feature: Budgetplanung Card→Modal für Kategorien (aktuell)</p>
+        <p style="font-size: 12px; color: #15803d; line-height: 1.6; margin: 0;">
+          ✅ <strong>Kompakte Kategorie-Cards:</strong> In der Budgetplanung zeigt jede Kategorie nur noch Name, Anzahl der Posten und die Summe. Die Seite ist deutlich kürzer und übersichtlicher.<br><br>
+          ✅ <strong>Klick öffnet ein Modal:</strong> Alle Posten (inkl. 📌 Fixkosten und 🏦 Sparkonten dieser Kategorie) mit ihren Eingabefeldern. Schließen über "Fertig", ✕, Tipp auf den Hintergrund oder Esc.<br><br>
+          ✅ <strong>Summen live:</strong> Die Summe im Modal und auf den Cards aktualisiert sich beim Tippen. Die KPIs oben werden beim Schließen sofort neu berechnet.<br><br>
+          ℹ️ <strong>Technik:</strong> Die Eingabefelder bleiben unverändert im Seiten-Aufbau (gleiche IDs, gleicher Cache); beim Öffnen wird nur ihr Container ins Modal verschoben. Berechnung und Speichern sind unverändert. Grundlage für das spätere Drag &amp; Drop (v4.9.1+).<br><br>
+          🧪 <strong>Was testen:</strong> Cards zeigen Name, Posten-Anzahl, Summe ✓/✗ · Klick öffnet Modal mit allen Feldern ✓/✗ · Wert ändern → Summe im Modal und KPIs oben stimmen ✓/✗ · Modal schließen → Card-Summe aktuell ✓/✗ · Monat/Jahr wechseln → Werte stimmen ✓/✗ · Reload → Werte noch da ✓/✗ · Kategorie ohne Posten → Hinweis im Modal ✓/✗ · iPhone: Modal scrollbar, Tastatur verdeckt nichts Wichtiges ✓/✗
+        </p>
+      </div>
+
       <!-- v4.8.3.2: BUGFIX - IPHONE SAFE-AREA (MENÜ-BUTTON) -->
-      <div class="settings-card" style="background: #fee2e2; border-color: #fca5a5; border-width: 3px;">
-        <p style="font-size: 13px; font-weight: 700; color: #991b1b; margin-bottom: 0.5rem;">🔧 v4.8.3.2 - Bugfix: ☰-Menü-Button auf dem iPhone wieder erreichbar (aktuell)</p>
+      <div class="settings-card" style="background: #fee2e2; border-color: #fca5a5;">
+        <p style="font-size: 13px; font-weight: 700; color: #991b1b; margin-bottom: 0.5rem;">🔧 v4.8.3.2 - Bugfix: ☰-Menü-Button auf dem iPhone wieder erreichbar</p>
         <p style="font-size: 12px; color: #b91c1c; line-height: 1.6; margin: 0;">
           🐛 <strong>Problem:</strong> Auf dem iPhone (Safari/Home-Bildschirm) lag die Kopfzeile mit dem ☰-Button unter der Statusleiste (Uhrzeit/Notch). Ursache: <code>viewport-fit=cover</code> + <code>black-translucent</code> lassen die Seite bis unter die Statusleiste laufen, die Kopfzeile hatte keinen Sicherheitsabstand. Dadurch waren Benutzerwechsel, Export und Import nicht erreichbar.<br><br>
           ✅ <strong>Fix:</strong> Die Kopfzeile bekommt oben <code>env(safe-area-inset-top)</code> als zusätzlichen Abstand. Auf dem Mac und in Umgebungen ohne Notch ist der Wert 0, das Aussehen bleibt unverändert.<br><br>
@@ -4931,6 +4967,7 @@ migrateDataStructure();
 
 // ✨ v3.8.1: Input Cache für Performance
 let inputCache = {};  // { inputId: { element, category, subcat } }
+let activeKatIdx = null;  // v4.9.0: Index der Kategorie, die gerade im Modal geöffnet ist
 let updateSummaryTimeout = null;  // Debounce für updateSummary
 
 // ============================================================
@@ -6068,7 +6105,14 @@ function renderInputs() {
       console.warn('renderInputs: Missing user data');
       return;
     }
-    
+
+    // v4.9.0: Offenes Kategorie-Modal schließen, bevor der Container neu aufgebaut wird (sonst doppelte IDs)
+    if (activeKatIdx !== null) {
+      activeKatIdx = null;
+      document.getElementById('katModalBody').innerHTML = '';
+      document.getElementById('katModal').classList.remove('active');
+    }
+
     const monthKey = MONTHS[currentMonth];
     const userData = allData.users[currentUser].data[currentYear] || {};
     const monthData = userData[monthKey] || {};
@@ -6098,7 +6142,7 @@ function renderInputs() {
     let html = '';
     // v4.6.2: Dynamische Kategorien statt hardcodierter CATEGORIES
     const kategorien = getKategorien();
-    kategorien.forEach(kat => {
+    kategorien.forEach((kat, katIdx) => {
       const catName = kat.name;
       let subHtml = '';
       
@@ -6146,7 +6190,17 @@ function renderInputs() {
       </div>`;
     });
 
-    html += `<div class="category-section"><div class="category-header">${catName}</div><div class="subcategory-grid">${subHtml}</div></div>`;
+    // v4.9.0: Card→Modal — kompakte Card (Name + Summe); die Eingabefelder bleiben versteckt im DOM
+    // (IDs, inputCache, updateSummary und saveMonth laufen unverändert) und werden beim Klick ins Modal verschoben
+    const postenCount = kat.posten.length + categoryFixkosten.length + categorySparkonten.length;
+    html += `<div class="category-section kat-card" data-kat="${katIdx}" onclick="openKatModal(${katIdx})" role="button" tabindex="0">
+      <div class="kat-card-main">
+        <div class="kat-card-name">${catName}</div>
+        <div class="kat-card-meta">${postenCount} Posten</div>
+      </div>
+      <div class="kat-card-right"><span class="kat-card-total" id="katTotal_${katIdx}">€0,00</span><span class="kat-card-chev">›</span></div>
+      <div id="katStore_${katIdx}" style="display: none;"><div class="subcategory-grid" id="katGrid_${katIdx}">${subHtml}</div></div>
+    </div>`;
   });
 
   // v4.5.8: Fixkosten-Feld entfernt → wird jetzt in KPI-Übersicht oben angezeigt
@@ -6191,6 +6245,92 @@ function renderInputs() {
     }
   }
 }
+
+// ============================================================
+// v4.9.0: KATEGORIE CARD → MODAL
+// ============================================================
+function formatKatEuro(value) {
+  return '€' + value.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// Summe aller Eingabefelder einer Kategorie (egal ob Grid in der Card oder im Modal liegt)
+function getKategorieSum(idx) {
+  const grid = document.getElementById('katGrid_' + idx);
+  if (!grid) return 0;
+  let sum = 0;
+  grid.querySelectorAll('input').forEach(inp => { sum += parseFloat(inp.value) || 0; });
+  return sum;
+}
+
+function updateKategorieCardTotals() {
+  try {
+    document.querySelectorAll('.kat-card').forEach(card => {
+      const idx = card.getAttribute('data-kat');
+      const totalEl = document.getElementById('katTotal_' + idx);
+      if (totalEl) totalEl.textContent = formatKatEuro(getKategorieSum(idx));
+    });
+    if (activeKatIdx !== null) {
+      const sumEl = document.getElementById('katModalSum');
+      if (sumEl) sumEl.textContent = 'Summe: ' + formatKatEuro(getKategorieSum(activeKatIdx));
+    }
+  } catch (e) {
+    console.warn('updateKategorieCardTotals error (non-critical):', e);
+  }
+}
+
+function openKatModal(idx) {
+  try {
+    const grid = document.getElementById('katGrid_' + idx);
+    const body = document.getElementById('katModalBody');
+    if (!grid || !body) return;
+    if (activeKatIdx !== null) closeKatModal();
+
+    const kat = getKategorien()[idx];
+    document.getElementById('katModalTitle').textContent = kat ? kat.name : '';
+
+    body.innerHTML = '';
+    body.appendChild(grid);   // Grid mit allen Feldern ins Modal verschieben (gleiche Elemente, gleiche IDs)
+    if (!grid.children.length) {
+      const hint = document.createElement('p');
+      hint.id = 'katModalEmpty';
+      hint.style.cssText = 'font-size: 12px; opacity: 0.7; margin: 0.5rem 0;';
+      hint.textContent = 'In dieser Kategorie gibt es noch keine Posten. Du kannst sie im Tab "Kategorien" hinzufügen.';
+      body.appendChild(hint);
+    }
+
+    activeKatIdx = idx;
+    updateKategorieCardTotals();
+    document.getElementById('katModal').classList.add('active');
+  } catch (e) {
+    console.error('openKatModal error:', e);
+  }
+}
+
+function closeKatModal() {
+  try {
+    // Fokus lösen, damit ein offenes onchange noch vor dem Zurückverschieben feuert
+    if (document.activeElement && typeof document.activeElement.blur === 'function') {
+      document.activeElement.blur();
+    }
+    if (activeKatIdx !== null) {
+      const grid = document.getElementById('katGrid_' + activeKatIdx);
+      const store = document.getElementById('katStore_' + activeKatIdx);
+      if (grid && store) store.appendChild(grid);   // Grid zurück in die (versteckte) Card
+    }
+    activeKatIdx = null;
+    const body = document.getElementById('katModalBody');
+    if (body) body.innerHTML = '';
+    document.getElementById('katModal').classList.remove('active');
+    updateSummary();
+    updateKategorieCardTotals();
+  } catch (e) {
+    console.error('closeKatModal error:', e);
+  }
+}
+
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape' && activeKatIdx !== null) closeKatModal();
+});
 
 function getMonthlyStandard() {
   if (!allData.users[currentUser].monthlyStandard) allData.users[currentUser].monthlyStandard = {};
@@ -7641,6 +7781,7 @@ function updateSummary() {
       totalSpent += val;
       if (isSparKategorie(cached.category)) sparenAmount += val;
     });
+    updateKategorieCardTotals();  // v4.9.0: Card-Summen aktuell halten
     
     const monthKey = MONTHS[currentMonth];
     const income = getMonthIncome(monthKey);
@@ -8207,7 +8348,7 @@ function executeDeleteAllSparkonten(year) {
 // v4.8.3: DATEN-EXPORT / -IMPORT (JSON)
 // ============================================================
 const BACKUP_APP_NAME = 'Gehaltsplaner Pro';
-const BACKUP_APP_VERSION = '4.8.3.2';
+const BACKUP_APP_VERSION = '4.9.0';
 
 // Meldung nach dem Schließen des Menüs zeigen (alert() wird von offenen Modals blockiert)
 function dataBackupAlert(message) {
