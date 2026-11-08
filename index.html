@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Gehaltsplaner CB">
   <meta name="theme-color" content="#3B82F6">
-  <title>Gehaltsplaner Pro v4.8.2.4 - Option A (Option A: Tab-Lokalisiert)</title>
+  <title>Gehaltsplaner Pro v4.8.3.1 - Option A (Option A: Tab-Lokalisiert)</title>
   <script>
     // Async load Chart.js with fallback
     const script = document.createElement('script');
@@ -1103,6 +1103,17 @@ small { font-size: 12px; color: #999; }
         </div>
       </div>
 
+      <!-- v4.8.3: Daten sichern (Export/Import) -->
+      <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 8px; padding: 0.875rem; margin-bottom: 1.5rem;">
+        <p style="font-size: 12px; font-weight: 600; color: #166534; margin: 0 0 0.25rem 0;">💾 Daten sichern & übertragen</p>
+        <p style="font-size: 11px; color: #15803d; line-height: 1.5; margin: 0 0 0.75rem 0;">Exportiert alle Benutzer und Planzahlen als JSON-Datei. Mit dem Import lädst du sie auf einem anderen Gerät oder als Backup wieder ein.</p>
+        <div style="display: flex; gap: 0.5rem;">
+          <button onclick="exportDataJSON()" class="btn-primary" style="flex: 1; padding: 0.5rem; font-size: 12px;">⬇️ Exportieren</button>
+          <button onclick="document.getElementById('importDataFile').click()" class="btn-primary" style="flex: 1; padding: 0.5rem; font-size: 12px;">⬆️ Importieren</button>
+        </div>
+        <input type="file" id="importDataFile" accept=".json,application/json" style="display: none;" onchange="importDataJSON(this)">
+      </div>
+
       <!-- Buttons -->
       <div style="display: flex; gap: 0.5rem;">
         <button onclick="openNewUserModal(); closeUserMenu();" class="btn-success" style="flex: 1;">+ Neuer Benutzer</button>
@@ -1117,7 +1128,7 @@ small { font-size: 12px; color: #999; }
         <p>Jahresplanung & Budgetierung deines Einkommens</p>
       </div>
       <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
-        <div class="version">v4.8.2.4</div>
+        <div class="version">v4.8.3.1</div>
         <div style="font-size: 10px; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.5px;">🔒 CLOSED BETA</div>
       </div>
     </div>
@@ -1676,9 +1687,34 @@ small { font-size: 12px; color: #999; }
         </p>
       </div>
 
-      <!-- v4.8.2.4: BUGFIX - STANDARD SETZEN BUTTON ENTFERNT -->
+      <!-- v4.8.3.1: BUGFIX - IMPORT: SPEICHER-KONTROLLE -->
       <div class="settings-card" style="background: #fee2e2; border-color: #fca5a5; border-width: 3px;">
-        <p style="font-size: 13px; font-weight: 700; color: #991b1b; margin-bottom: 0.5rem;">🔧 v4.8.2.4 - Bugfix: "Standard setzen" Button entfernt — Auto-Save via onchange (aktuell)</p>
+        <p style="font-size: 13px; font-weight: 700; color: #991b1b; margin-bottom: 0.5rem;">🔧 v4.8.3.1 - Bugfix: Import prüft, ob Daten wirklich gespeichert wurden (aktuell)</p>
+        <p style="font-size: 12px; color: #b91c1c; line-height: 1.6; margin: 0;">
+          🐛 <strong>Problem:</strong> Auf dem iPhone meldete der Import "erfolgreich", danach waren aber keine Daten sichtbar. In manchen Umgebungen (eingebettete Ansicht, Dateien-App, privater Tab) verwirft der Browser den Speicher, ohne dass die App es bemerkt.<br><br>
+          ✅ <strong>Kontrolle direkt nach dem Schreiben:</strong> Der Import liest die Daten zurück und vergleicht sie. Stimmt etwas nicht, wird der bisherige Stand wiederhergestellt und eine klare Warnung mit Handlungshinweis gezeigt (statt "erfolgreich").<br><br>
+          ✅ <strong>Kontrolle nach dem Neuladen:</strong> Ein Marker (<code>window.name</code>) überlebt das Neuladen. Danach prüft die App, ob die erwarteten Benutzer da sind: Erfolgsmeldung "Import geladen: N Benutzer" oder Warnung, dass der Browser die Daten verworfen hat.<br><br>
+          ℹ️ <strong>Hinweis:</strong> Das behebt nicht die Browser-Einschränkung selbst, sondern macht sie sichtbar. Dauerhaft funktioniert der Import in einem normalen Safari-Tab (z. B. über GitHub Pages).<br><br>
+          🧪 <strong>Was testen:</strong> Import in normalem Safari-Tab → "Import geladen: N Benutzer" + Benutzer sichtbar ✓/✗ · Import in eingebetteter Ansicht/Dateien-App → klare Warnung statt stiller Leere ✓/✗ · Mac: Export/Import wie bisher ✓/✗
+        </p>
+      </div>
+
+      <!-- v4.8.3: FEATURE - DATEN EXPORT / IMPORT (JSON) -->
+      <div class="settings-card" style="background: #f0fdf4; border-color: #86efac;">
+        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">✨ v4.8.3 - Feature: Daten-Export/Import (JSON)</p>
+        <p style="font-size: 12px; color: #15803d; line-height: 1.6; margin: 0;">
+          ✅ <strong>Neuer Bereich "💾 Daten sichern & übertragen"</strong> im Benutzermenü (☰) mit den Buttons <strong>Exportieren</strong> und <strong>Importieren</strong>.<br><br>
+          ✅ <strong>Export:</strong> Alle Benutzer und Planzahlen werden als Datei <code>Gehaltsplaner-Backup-JJJJ-MM-TT.json</code> heruntergeladen (inkl. App-Name, Version, Zeitstempel).<br><br>
+          ✅ <strong>Import:</strong> JSON-Datei wählen → Prüfung auf gültige Gehaltsplaner-Daten → Sicherheitsabfrage → Daten ersetzen → Seite lädt neu. Ungültige Dateien werden abgelehnt, ohne etwas zu verändern.<br><br>
+          ✅ <strong>Sicherheitskopie:</strong> Vor jedem Import wird der bisherige Stand zusätzlich unter <code>haushaltsbuch_multiuser_before_import</code> im Browser abgelegt.<br><br>
+          ℹ️ <strong>Zweck:</strong> Backup + manueller Abgleich zwischen Geräten (z. B. Mac ↔ Handy) und Vorbereitung für eine spätere Cloud-Synchronisation. Der Import ersetzt alle Daten auf dem Gerät.<br><br>
+          🧪 <strong>Was testen:</strong> Export → Datei wird geladen ✓/✗ · Import derselben Datei → Daten unverändert ✓/✗ · Import einer Fremd-/Textdatei → Fehlermeldung, Daten unverändert ✓/✗ · Import abbrechen (Abfrage "Abbrechen") → nichts passiert ✓/✗ · Import auf anderem Gerät → Benutzer und Zahlen vorhanden ✓/✗
+        </p>
+      </div>
+
+      <!-- v4.8.2.4: BUGFIX - STANDARD SETZEN BUTTON ENTFERNT -->
+      <div class="settings-card" style="background: #fee2e2; border-color: #fca5a5;">
+        <p style="font-size: 13px; font-weight: 700; color: #991b1b; margin-bottom: 0.5rem;">🔧 v4.8.2.4 - Bugfix: "Standard setzen" Button entfernt — Auto-Save via onchange</p>
         <p style="font-size: 12px; color: #b91c1c; line-height: 1.6; margin: 0;">
           ✅ <strong>"Standard setzen" Button entfernt</strong> — war nach v4.8.2.3 überflüssig da beide Wege (manuell + Benutzer übernehmen) bereits direkt speichern.<br><br>
           ✅ <strong>Feld bekommt <code>onchange</code></strong> — Wert manuell eingeben + Tab/Enter → direkt gespeichert, Erfolgsmeldung erscheint.<br><br>
@@ -8157,8 +8193,155 @@ function executeDeleteAllSparkonten(year) {
   showSuccessMessage("✅ Alle Sparkonten von " + year + " gelöscht!");
 }
 
+// ============================================================
+// v4.8.3: DATEN-EXPORT / -IMPORT (JSON)
+// ============================================================
+const BACKUP_APP_NAME = 'Gehaltsplaner Pro';
+const BACKUP_APP_VERSION = '4.8.3.1';
+
+// Meldung nach dem Schließen des Menüs zeigen (alert() wird von offenen Modals blockiert)
+function dataBackupAlert(message) {
+  closeUserMenu();
+  setTimeout(() => alert(message), 100);
+}
+
+function exportDataJSON() {
+  try {
+    const userCount = allData && allData.users ? Object.keys(allData.users).length : 0;
+    if (userCount === 0) {
+      dataBackupAlert('Es sind noch keine Benutzer oder Daten zum Exportieren vorhanden.');
+      return;
+    }
+
+    const now = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const dateStr = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate());
+
+    const payload = {
+      app: BACKUP_APP_NAME,
+      appVersion: BACKUP_APP_VERSION,
+      exportedAt: now.toISOString(),
+      data: allData
+    };
+
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'Gehaltsplaner-Backup-' + dateStr + '.json';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+    showSuccessMessage('✅ Export erstellt (' + userCount + ' Benutzer)');
+  } catch (err) {
+    console.error('❌ exportDataJSON error:', err);
+    dataBackupAlert('Export fehlgeschlagen: ' + err.message);
+  }
+}
+
+function importDataJSON(inputEl) {
+  const file = inputEl && inputEl.files ? inputEl.files[0] : null;
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onerror = () => {
+    inputEl.value = '';
+    dataBackupAlert('Die Datei konnte nicht gelesen werden.');
+  };
+  reader.onload = () => {
+    inputEl.value = ''; // gleiche Datei später erneut wählbar
+    let parsed;
+    try {
+      parsed = JSON.parse(reader.result);
+    } catch (err) {
+      dataBackupAlert('Import abgebrochen: Die Datei ist kein gültiges JSON.');
+      return;
+    }
+
+    // Export-Format { app, data } oder rohes allData-Objekt akzeptieren
+    const data = parsed && parsed.data ? parsed.data : parsed;
+    const valid = data && typeof data === 'object' && data.users &&
+                  typeof data.users === 'object' && !Array.isArray(data.users);
+    if (!valid) {
+      dataBackupAlert('Import abgebrochen: Die Datei enthält keine Gehaltsplaner-Daten.');
+      return;
+    }
+
+    const importCount = Object.keys(data.users).length;
+    const currentCount = allData && allData.users ? Object.keys(allData.users).length : 0;
+
+    // Menü zuerst schließen, damit confirm() nicht vom Overlay blockiert wird
+    closeUserMenu();
+    setTimeout(() => {
+      const ok = confirm(
+        'Import: ' + importCount + ' Benutzer aus der Datei.\n\n' +
+        'Achtung: Die aktuellen Daten auf diesem Gerät (' + currentCount + ' Benutzer) werden ersetzt.\n' +
+        'Tipp: Exportiere vorher, wenn du sie noch brauchst.\n\nFortfahren?'
+      );
+      if (!ok) return;
+
+      const STORAGE_KEY = 'haushaltsbuch_multiuser';
+      const previousSerialized = JSON.stringify(allData || {});
+      try {
+        // Sicherheitskopie der bisherigen Daten (Notfall-Rückweg über die Browser-Konsole)
+        try {
+          localStorage.setItem('haushaltsbuch_multiuser_before_import', previousSerialized);
+        } catch (e) {
+          console.warn('Sicherheitskopie vor Import nicht möglich:', e);
+        }
+
+        clearTimeout(saveTimeout); // ausstehendes Debounce-Speichern darf den Import nicht überschreiben
+        const serialized = JSON.stringify(data);
+        localStorage.setItem(STORAGE_KEY, serialized);
+
+        // v4.8.3.1: Kontrolle — hat der Browser die Daten wirklich übernommen?
+        if (localStorage.getItem(STORAGE_KEY) !== serialized) {
+          throw new Error('Der Browser hat die Daten nicht übernommen.');
+        }
+
+        // Marker überlebt das Neuladen (window.name) → Prüfung, ob die Daten danach noch da sind
+        window.name = 'gp_import:' + importCount;
+        alert('✅ Import erfolgreich (' + importCount + ' Benutzer). Die Seite wird neu geladen.');
+        location.reload();
+      } catch (err) {
+        console.error('❌ importDataJSON error:', err);
+        // Best effort: bisherigen Stand wiederherstellen
+        try { localStorage.setItem(STORAGE_KEY, previousSerialized); } catch (e) { /* ignorieren */ }
+        alert('⚠️ Import NICHT gespeichert: ' + err.message + '\n\n' +
+              'Dein Browser lässt hier keine dauerhafte Speicherung zu (z. B. eingebettete Ansicht, Dateien-App oder privater Tab). ' +
+              'Öffne die App in einem normalen Safari-Tab und importiere dort erneut. Deine bisherigen Daten wurden nicht verändert.');
+      }
+    }, 100);
+  };
+  reader.readAsText(file);
+}
+
+// v4.8.3.1: Nach dem Neuladen prüfen, ob die importierten Daten wirklich noch da sind
+function checkImportAfterReload() {
+  try {
+    const match = /^gp_import:(\d+)$/.exec(window.name || '');
+    if (!match) return;
+    window.name = ''; // Marker nur einmal auswerten
+    const expected = parseInt(match[1], 10);
+    const actual = allData && allData.users ? Object.keys(allData.users).length : 0;
+    if (expected > 0 && actual === expected) {
+      setTimeout(() => showSuccessMessage('✅ Import geladen: ' + actual + ' Benutzer'), 300);
+    } else {
+      setTimeout(() => alert(
+        '⚠️ Der Import wurde nicht dauerhaft gespeichert: Nach dem Neuladen sind keine Daten vorhanden.\n\n' +
+        'Dein Browser verwirft die Daten hier (z. B. eingebettete Ansicht, Dateien-App oder privater Tab). ' +
+        'Öffne die App in einem normalen Safari-Tab und importiere dort erneut.'
+      ), 300);
+    }
+  } catch (err) {
+    console.warn('checkImportAfterReload:', err);
+  }
+}
 
 initUsers();
+checkImportAfterReload();
 </script>
 
 </body>
