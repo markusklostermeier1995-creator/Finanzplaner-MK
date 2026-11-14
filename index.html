@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Gehaltsplaner CB">
   <meta name="theme-color" content="#3B82F6">
-  <title>Gehaltsplaner Pro v4.14.0 - Option A (Option A: Tab-Lokalisiert)</title>
+  <title>Gehaltsplaner Pro v4.15.0 - Option A (Option A: Tab-Lokalisiert)</title>
   <script>
     // Async load Chart.js with fallback
     const script = document.createElement('script');
@@ -1102,6 +1102,21 @@ small { font-size: 12px; color: #999; }
   </div>
 
   <!-- User Menu Modal -->
+  <!-- v4.15.0: Bestätigungs-Dialog für Cloud sichern/laden -->
+  <div class="fixkosten-modal-overlay" id="cloudConfirmModal" style="z-index: 100001;">
+    <div class="fixkosten-modal" style="max-width: 420px;">
+      <div class="fixkosten-modal-header">
+        <span id="cloudConfirmTitle">Bestätigen</span>
+        <button class="fixkosten-modal-close" onclick="closeCloudConfirm()">×</button>
+      </div>
+      <p id="cloudConfirmBody" style="font-size: 13px; color: #333; line-height: 1.6; margin: 0 0 1.25rem 0; white-space: pre-line;"></p>
+      <div class="fixkosten-modal-actions">
+        <button class="fixkosten-modal-btn-save" id="cloudConfirmOk" onclick="runCloudConfirm()">OK</button>
+        <button class="fixkosten-modal-btn-cancel" onclick="closeCloudConfirm()">Abbrechen</button>
+      </div>
+    </div>
+  </div>
+
   <!-- v4.13.0: Cloud-Konto Modal -->
   <div class="fixkosten-modal-overlay" id="cloudModal" style="z-index: 100000;">
     <div class="fixkosten-modal" style="max-width: 420px;">
@@ -1115,10 +1130,19 @@ small { font-size: 12px; color: #999; }
           <p style="font-size: 12px; color: #166534; margin: 0 0 0.25rem 0;">Angemeldet als</p>
           <p style="font-size: 14px; font-weight: 700; color: #166534; margin: 0; word-break: break-all;" id="cloudViewEmail"></p>
         </div>
-        <p style="font-size: 12px; color: #666; line-height: 1.5; margin: 0 0 1rem 0;">Deine Daten bleiben vorerst nur auf diesem Gerät. Die Synchronisierung zwischen Geräten kommt in einer der nächsten Versionen. Mit dem Button unten prüfst du, ob die Cloud-Datenbank erreichbar und für dein Konto freigeschaltet ist.</p>
+        <p style="font-size: 12px; color: #666; line-height: 1.5; margin: 0 0 1rem 0;">Deine Daten bleiben auf diesem Gerät, bis du sie hier ausdrücklich in die Cloud sicherst. Ein automatischer Abgleich kommt in einer späteren Version.</p>
         <div style="margin-bottom: 1rem;">
           <button onclick="cloudCheckConnection()" class="btn-primary" style="width: 100%; padding: 0.5rem; font-size: 12px;" id="cloudCheckBtn">🔍 Cloud-Verbindung prüfen</button>
           <p id="cloudCheckResult" style="font-size: 12px; line-height: 1.5; margin: 0.5rem 0 0 0; min-height: 1em;"></p>
+        </div>
+        <div style="margin-bottom: 1rem; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 8px;">
+          <p style="font-size: 12px; font-weight: 600; color: #333; margin: 0 0 0.25rem 0;">Daten abgleichen</p>
+          <p id="cloudSyncStatus" style="font-size: 11px; color: #666; margin: 0 0 0.6rem 0;"></p>
+          <div style="display: flex; gap: 0.5rem;">
+            <button onclick="cloudUploadStart()" class="btn-success" style="flex: 1; padding: 0.5rem; font-size: 12px;" id="cloudUploadBtn">⬆️ In Cloud sichern</button>
+            <button onclick="cloudDownloadStart()" class="btn-primary" style="flex: 1; padding: 0.5rem; font-size: 12px;" id="cloudDownloadBtn">⬇️ Aus Cloud laden</button>
+          </div>
+          <p id="cloudSyncResult" style="font-size: 12px; line-height: 1.5; margin: 0.5rem 0 0 0; min-height: 1em;"></p>
         </div>
         <div class="fixkosten-modal-actions">
           <button class="fixkosten-modal-btn-save" style="background: #EF4444;" onclick="cloudSignOutClick()">Abmelden</button>
@@ -1235,7 +1259,7 @@ small { font-size: 12px; color: #999; }
         <p>Jahresplanung & Budgetierung deines Einkommens</p>
       </div>
       <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
-        <div class="version">v4.14.0</div>
+        <div class="version">v4.15.0</div>
         <div style="font-size: 10px; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.5px;">🔒 CLOSED BETA</div>
       </div>
     </div>
@@ -1816,9 +1840,21 @@ small { font-size: 12px; color: #999; }
         </p>
       </div>
 
-      <!-- v4.14.0: FEATURE - CLOUD-DATENBANK VORBEREITET -->
+      <!-- v4.15.0: FEATURE - IN CLOUD SICHERN / AUS CLOUD LADEN -->
       <div class="settings-card" style="background: #f0fdf4; border-color: #86efac; border-width: 3px;">
-        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">✨ v4.14.0 - Feature: Cloud-Datenbank vorbereitet (aktuell)</p>
+        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">✨ v4.15.0 - Feature: In Cloud sichern / Aus Cloud laden (aktuell)</p>
+        <p style="font-size: 12px; color: #15803d; line-height: 1.6; margin: 0;">
+          ✅ <strong>⬆️ In Cloud sichern:</strong> Der komplette Stand dieses Geräts (alle Profile) wird in deinem Cloud-Konto gespeichert, mit Rückfrage.<br>
+          ✅ <strong>⬇️ Aus Cloud laden:</strong> Der Cloud-Stand ersetzt die Daten dieses Geräts. Vorher legt die App automatisch eine Sicherheitskopie auf dem Gerät an.<br>
+          ✅ <strong>Konfliktschutz:</strong> Wurde die Cloud von einem anderen Gerät geändert, warnt die App vor dem Überschreiben. Gleichzeitige Änderungen überschreiben sich nie stillschweigend.<br>
+          ℹ️ <strong>Noch kein automatischer Abgleich:</strong> Du sicherst und lädst bewusst per Button. Der automatische Abgleich folgt in v4.16.0.<br>
+          🧪 <strong>Was testen:</strong> Mac: "In Cloud sichern" · iPhone: anmelden, "Aus Cloud laden" (Daten erscheinen) · Auf dem iPhone etwas ändern und sichern · Auf dem Mac erneut sichern (Warnung "anderswo geändert") · Auf dem Mac "Aus Cloud laden"
+        </p>
+      </div>
+
+      <!-- v4.14.0: FEATURE - CLOUD-DATENBANK VORBEREITET -->
+      <div class="settings-card" style="background: #f0fdf4; border-color: #86efac;">
+        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">✨ v4.14.0 - Feature: Cloud-Datenbank vorbereitet</p>
         <p style="font-size: 12px; color: #15803d; line-height: 1.6; margin: 0;">
           ✅ <strong>Neue Tabelle "app_data"</strong> in Supabase (per SQL-Skript): pro Konto eine Zeile für das Datenpaket der App, mit Sicherheitsregeln (Row Level Security): jedes Konto sieht und ändert nur seine eigene Zeile, anonym ist nichts erlaubt.<br>
           ✅ <strong>Button "🔍 Cloud-Verbindung prüfen"</strong> im Cloud-Konto: testet, ob die Tabelle erreichbar und für dein Konto freigeschaltet ist.<br>
@@ -6545,11 +6581,11 @@ function cloudSessionFrom(d, fallbackEmail) {
     email: (d.user && d.user.email) || fallbackEmail || ''
   };
 }
-async function cloudApi(path, method, body, token) {
+async function cloudApi(path, method, body, token, extra) {
   try {
     const res = await fetch(CLOUD_URL + path, {
       method: method,
-      headers: { 'apikey': CLOUD_KEY, 'Authorization': 'Bearer ' + (token || CLOUD_KEY), 'Content-Type': 'application/json' },
+      headers: Object.assign({ 'apikey': CLOUD_KEY, 'Authorization': 'Bearer ' + (token || CLOUD_KEY), 'Content-Type': 'application/json' }, extra || {}),
       body: body ? JSON.stringify(body) : undefined
     });
     let data = null;
@@ -6629,6 +6665,168 @@ async function cloudHandleRedirect() {
   renderCloudUi();
   showSuccessMessage('E-Mail bestätigt. Du bist angemeldet.');
 }
+// ===== v4.15.0: CLOUD SICHERN / LADEN (MANUELL) =====
+// Pro Konto eine Zeile in app_data. Upload ersetzt die Cloud-Zeile, Download ersetzt die Daten dieses Geräts.
+// Konfliktschutz: Der Upload klappt nur, wenn die Cloud-Zeile noch den Stand hat, den dieses Gerät zuletzt gesehen hat (updated_at).
+const CLOUD_META_KEY = 'gp_cloud_meta';
+let cloudConfirmAction = null;
+
+function cloudUserId() {
+  const s = cloudLoadSession();
+  if (!s || !s.access_token) return null;
+  try {
+    const part = s.access_token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    const json = decodeURIComponent(escape(atob(part + '='.repeat((4 - part.length % 4) % 4))));
+    return JSON.parse(json).sub || null;
+  } catch (e) { return null; }
+}
+function cloudLoadMeta() {
+  try {
+    const m = JSON.parse(localStorage.getItem(CLOUD_META_KEY) || 'null');
+    return m && m.user_id === cloudUserId() ? m : null;
+  } catch (e) { return null; }
+}
+function cloudSaveMeta(updatedAt) {
+  try { localStorage.setItem(CLOUD_META_KEY, JSON.stringify({ user_id: cloudUserId(), updated_at: updatedAt, synced_at: new Date().toISOString() })); } catch (e) {}
+}
+function cloudFmtDate(iso) { try { return new Date(iso).toLocaleString('de-DE'); } catch (e) { return String(iso); } }
+function cloudProfileCount(d) { return d && d.users && typeof d.users === 'object' ? Object.keys(d.users).length : 0; }
+function cloudSetSyncResult(text, isError) {
+  const el = document.getElementById('cloudSyncResult');
+  if (!el) return;
+  el.textContent = text;
+  el.style.color = isError ? '#b91c1c' : '#166534';
+}
+function cloudRenderSyncStatus() {
+  const el = document.getElementById('cloudSyncStatus');
+  if (!el) return;
+  const m = cloudLoadMeta();
+  el.textContent = m ? 'Zuletzt abgeglichen: ' + cloudFmtDate(m.synced_at) : 'Dieses Gerät wurde noch nicht mit der Cloud abgeglichen.';
+}
+function cloudSyncErr(res) {
+  if (res.network) return 'Keine Verbindung zum Cloud-Server. Bitte Internet prüfen.';
+  const d = res.data || {};
+  const code = String(d.code || d.error_code || '');
+  if (res.status === 401 || res.status === 403) return 'Sitzung abgelaufen oder Zugriff verweigert. Bitte ab- und wieder anmelden.';
+  if (res.status === 404 || code === 'PGRST205' || code === '42P01') return 'Die Tabelle "app_data" fehlt in Supabase (SQL-Skript nicht ausgeführt).';
+  if (res.status === 413) return 'Das Datenpaket ist zu groß für die Cloud.';
+  return 'Fehler (' + res.status + '): ' + String(d.message || d.msg || 'unbekannt');
+}
+function openCloudConfirm(title, body, okLabel, danger, action) {
+  document.getElementById('cloudConfirmTitle').textContent = title;
+  document.getElementById('cloudConfirmBody').textContent = body;
+  const ok = document.getElementById('cloudConfirmOk');
+  ok.textContent = okLabel;
+  ok.style.background = danger ? '#EF4444' : '';
+  cloudConfirmAction = action;
+  document.getElementById('cloudConfirmModal').classList.add('active');
+}
+function closeCloudConfirm() {
+  cloudConfirmAction = null;
+  document.getElementById('cloudConfirmModal').classList.remove('active');
+}
+function runCloudConfirm() {
+  const a = cloudConfirmAction;
+  closeCloudConfirm();
+  if (a) a();
+}
+function cloudSyncBusy(on) {
+  ['cloudUploadBtn', 'cloudDownloadBtn'].forEach(id => { const b = document.getElementById(id); if (b) b.disabled = on; });
+}
+
+async function cloudUploadStart() {
+  cloudSetSyncResult('', false);
+  await cloudRefreshIfNeeded();
+  const s = cloudLoadSession(), uid = cloudUserId();
+  if (!s || !uid) { cloudSetSyncResult('Du bist nicht angemeldet. Bitte neu anmelden.', true); return; }
+  const local = cloudProfileCount(allData);
+  if (local === 0) { cloudSetSyncResult('Auf diesem Gerät gibt es noch keine Daten zum Sichern.', true); return; }
+  cloudSyncBusy(true); cloudSetSyncResult('Prüfe Cloud-Stand …', false);
+  const res = await cloudApi('/rest/v1/app_data?select=updated_at', 'GET', null, s.access_token);
+  cloudSyncBusy(false);
+  if (!res.ok || !Array.isArray(res.data)) { cloudSetSyncResult(cloudSyncErr(res), true); return; }
+  cloudSetSyncResult('', false);
+  const row = res.data[0] || null;
+  const meta = cloudLoadMeta();
+  if (!row) {
+    openCloudConfirm('In Cloud sichern', 'In der Cloud liegt noch nichts.\n\nDer Stand dieses Geräts (' + local + ' Profil(e)) wird als erster Cloud-Stand gesichert.', 'Jetzt sichern', false, () => cloudUploadExecute(null));
+  } else if (meta && meta.updated_at === row.updated_at) {
+    openCloudConfirm('In Cloud sichern', 'Der Cloud-Stand vom ' + cloudFmtDate(row.updated_at) + ' wird durch den Stand dieses Geräts (' + local + ' Profil(e)) ersetzt.', 'Jetzt sichern', false, () => cloudUploadExecute(row.updated_at));
+  } else {
+    openCloudConfirm('⚠️ Cloud wurde anderswo geändert', 'In der Cloud liegt ein Stand vom ' + cloudFmtDate(row.updated_at) + ', den dieses Gerät noch nicht kennt (z. B. von einem anderen Gerät).\n\nWenn du jetzt sicherst, geht dieser Cloud-Stand verloren.\n\nTipp: Erst "Aus Cloud laden" und dann prüfen, oder vorher exportieren.', 'Cloud überschreiben', true, () => cloudUploadExecute(row.updated_at));
+  }
+}
+async function cloudUploadExecute(expectedUpdatedAt) {
+  await cloudRefreshIfNeeded();
+  const s = cloudLoadSession(), uid = cloudUserId();
+  if (!s || !uid) { cloudSetSyncResult('Du bist nicht angemeldet. Bitte neu anmelden.', true); return; }
+  const payload = { app: BACKUP_APP_NAME, appVersion: BACKUP_APP_VERSION, uploadedAt: new Date().toISOString(), data: JSON.parse(JSON.stringify(allData)) };
+  cloudSyncBusy(true); cloudSetSyncResult('Sichere …', false);
+  const extra = { 'Prefer': 'return=representation' };
+  let res;
+  if (expectedUpdatedAt) {
+    res = await cloudApi('/rest/v1/app_data?user_id=eq.' + encodeURIComponent(uid) + '&updated_at=eq.' + encodeURIComponent(expectedUpdatedAt), 'PATCH', { data: payload }, s.access_token, extra);
+  } else {
+    res = await cloudApi('/rest/v1/app_data', 'POST', { user_id: uid, data: payload }, s.access_token, extra);
+  }
+  cloudSyncBusy(false);
+  if (res.status === 409) { cloudSetSyncResult('Die Cloud wurde in der Zwischenzeit geändert. Nichts wurde überschrieben. Bitte erneut versuchen.', true); return; }
+  if (!res.ok) { cloudSetSyncResult(cloudSyncErr(res), true); return; }
+  if (!Array.isArray(res.data) || res.data.length === 0) { cloudSetSyncResult('Die Cloud wurde in der Zwischenzeit geändert. Nichts wurde überschrieben. Bitte erneut versuchen.', true); return; }
+  cloudSaveMeta(res.data[0].updated_at);
+  cloudRenderSyncStatus();
+  cloudSetSyncResult('✓ Gesichert (' + cloudProfileCount(allData) + ' Profil(e)) am ' + cloudFmtDate(res.data[0].updated_at) + '.', false);
+}
+
+async function cloudDownloadStart() {
+  cloudSetSyncResult('', false);
+  await cloudRefreshIfNeeded();
+  const s = cloudLoadSession();
+  if (!s) { cloudSetSyncResult('Du bist nicht angemeldet. Bitte neu anmelden.', true); return; }
+  cloudSyncBusy(true); cloudSetSyncResult('Lade Cloud-Stand …', false);
+  const res = await cloudApi('/rest/v1/app_data?select=data,updated_at', 'GET', null, s.access_token);
+  cloudSyncBusy(false);
+  if (!res.ok || !Array.isArray(res.data)) { cloudSetSyncResult(cloudSyncErr(res), true); return; }
+  const row = res.data[0];
+  if (!row) { cloudSetSyncResult('In der Cloud liegt noch nichts. Sichere zuerst auf dem Gerät mit deinen Daten.', true); return; }
+  const cloudData = row.data && row.data.data ? row.data.data : row.data;
+  if (!cloudData || typeof cloudData !== 'object' || !cloudData.users || typeof cloudData.users !== 'object' || Array.isArray(cloudData.users)) {
+    cloudSetSyncResult('Der Cloud-Stand enthält keine gültigen Gehaltsplaner-Daten. Es wurde nichts verändert.', true);
+    return;
+  }
+  cloudSetSyncResult('', false);
+  const cloudCount = cloudProfileCount(cloudData), local = cloudProfileCount(allData);
+  openCloudConfirm('Aus Cloud laden', 'Cloud-Stand vom ' + cloudFmtDate(row.updated_at) + ' (' + cloudCount + ' Profil(e)).\n\nDer aktuelle Stand dieses Geräts (' + local + ' Profil(e)) wird ersetzt. Vorher legt die App automatisch eine Sicherheitskopie auf diesem Gerät an.\n\nÄnderungen auf diesem Gerät, die nicht in der Cloud sind, gehen sonst verloren. Tipp: vorher exportieren.', 'Jetzt laden', true, () => cloudDownloadExecute(cloudData, row.updated_at));
+}
+function cloudDownloadExecute(cloudData, updatedAt) {
+  const STORAGE_KEY = 'haushaltsbuch_multiuser';
+  const previousSerialized = JSON.stringify(allData || {});
+  try {
+    try { localStorage.setItem('haushaltsbuch_multiuser_before_cloud_load', previousSerialized); } catch (e) { console.warn('Sicherheitskopie vor Cloud-Laden nicht möglich:', e); }
+    clearTimeout(saveTimeout);
+    const serialized = JSON.stringify(cloudData);
+    localStorage.setItem(STORAGE_KEY, serialized);
+    if (localStorage.getItem(STORAGE_KEY) !== serialized) throw new Error('Der Browser hat die Daten nicht übernommen.');
+    cloudSaveMeta(updatedAt);
+    window.name = 'gp_cloud:' + cloudProfileCount(cloudData);
+    location.reload();
+  } catch (err) {
+    console.error('cloudDownloadExecute:', err);
+    try { localStorage.setItem(STORAGE_KEY, previousSerialized); } catch (e) {}
+    cloudSetSyncResult('Laden NICHT gespeichert: ' + err.message + ' Deine bisherigen Daten wurden nicht verändert.', true);
+  }
+}
+function cloudCheckAfterReload() {
+  try {
+    const m = /^gp_cloud:(\d+)$/.exec(window.name || '');
+    if (!m) return;
+    window.name = '';
+    const expected = parseInt(m[1], 10), actual = cloudProfileCount(allData);
+    if (expected > 0 && actual === expected) setTimeout(() => showSuccessMessage('☁️ Cloud-Stand geladen: ' + actual + ' Profil(e)'), 300);
+    else setTimeout(() => alert('Der Cloud-Stand wurde nicht dauerhaft gespeichert (Browser verwirft die Daten, z. B. privater Tab). Bitte in einem normalen Safari-Tab erneut laden.'), 300);
+  } catch (e) {}
+}
+
 async function cloudCheckConnection() {
   const out = document.getElementById('cloudCheckResult');
   const btn = document.getElementById('cloudCheckBtn');
@@ -6688,7 +6886,7 @@ function openCloudModal() {
   const s = cloudLoadSession();
   document.getElementById('cloudViewIn').style.display = s ? 'block' : 'none';
   document.getElementById('cloudViewOut').style.display = s ? 'none' : 'block';
-  if (s) { document.getElementById('cloudViewEmail').textContent = s.email || ''; document.getElementById('cloudCheckResult').textContent = ''; }
+  if (s) { document.getElementById('cloudViewEmail').textContent = s.email || ''; document.getElementById('cloudCheckResult').textContent = ''; document.getElementById('cloudSyncResult').textContent = ''; cloudRenderSyncStatus(); }
   else { setCloudMode('login'); document.getElementById('cloudPassword').value = ''; }
   document.getElementById('cloudModal').classList.add('active');
 }
@@ -6729,9 +6927,11 @@ function initCloud() {
       const t = e.target;
       if (t && (t.id === 'cloudEmail' || t.id === 'cloudPassword')) { e.preventDefault(); submitCloud(); }
     }
-    if (e.key === 'Escape' && document.getElementById('cloudModal').classList.contains('active')) closeCloudModal();
+    if (e.key === 'Escape' && document.getElementById('cloudConfirmModal').classList.contains('active')) closeCloudConfirm();
+    else if (e.key === 'Escape' && document.getElementById('cloudModal').classList.contains('active')) closeCloudModal();
   });
   renderCloudUi();
+  cloudCheckAfterReload();
   if (!cloudAvailable()) return;
   cloudHandleRedirect().then(() => cloudRefreshIfNeeded()).then(renderCloudUi).catch(() => {});
 }
@@ -8994,7 +9194,7 @@ function executeDeleteAllSparkonten(year) {
 // v4.8.3: DATEN-EXPORT / -IMPORT (JSON)
 // ============================================================
 const BACKUP_APP_NAME = 'Gehaltsplaner Pro';
-const BACKUP_APP_VERSION = '4.14.0';
+const BACKUP_APP_VERSION = '4.15.0';
 
 // Meldung nach dem Schließen des Menüs zeigen (alert() wird von offenen Modals blockiert)
 function dataBackupAlert(message) {
