@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Gehaltsplaner CB">
   <meta name="theme-color" content="#3B82F6">
-  <title>Gehaltsplaner Pro v4.20.1 - Option A (Option A: Tab-Lokalisiert)</title>
+  <title>Gehaltsplaner Pro v4.21.0 - Option A (Option A: Tab-Lokalisiert)</title>
   <script>
     // Async load Chart.js with fallback
     const script = document.createElement('script');
@@ -1333,7 +1333,7 @@ small { font-size: 12px; color: #999; }
         <p>Jahresplanung & Budgetierung deines Einkommens</p>
       </div>
       <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
-        <div class="version">v4.20.1</div>
+        <div class="version">v4.21.0</div>
         <div style="font-size: 10px; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.5px;">🔒 CLOSED BETA</div>
       </div>
     </div>
@@ -1416,9 +1416,10 @@ small { font-size: 12px; color: #999; }
       <!-- BUDGET KATEGORIEN -->
       <div id="categoriesContainer" style="margin-bottom: 1.5rem;"></div>
 
-      <!-- SAVE / DELETE BUTTONS -->
+      <p style="font-size: 11px; color: #999; text-align: center; margin: 0 0 0.75rem 0;">✓ Änderungen werden automatisch gespeichert</p>
+
+      <!-- COPY / DELETE BUTTONS (v4.21.0: Speichern entfaellt) -->
       <div class="btn-group">
-        <button onclick="saveMonth()" class="btn-primary">💾 Speichern</button>
         <button onclick="openBudgetCopyModal()" class="btn-primary" style="background: #8B5CF6; border-color: #8B5CF6;">📋 Kopieren</button>
         <button onclick="showDeleteWarning()" class="btn-danger">🗑️ Löschen</button>
       </div>
@@ -1898,9 +1899,22 @@ small { font-size: 12px; color: #999; }
         </p>
       </div>
 
+      <!-- v4.21.0: FEATURE - AUTOMATISCH SPEICHERN -->
+      <div class="settings-card" style="background: #f0fdf4; border-color: #86efac; border-width: 3px;">
+        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">💾 v4.21.0 - Feature: Budgetplanung speichert automatisch (aktuell)</p>
+        <p style="font-size: 12px; color: #15803d; line-height: 1.6; margin: 0;">
+          <strong>Problem bisher:</strong> Eingetippte Beträge wurden erst mit dem Button "Speichern" gesichert. Wer vorher den Monat wechselte, verlor sie ohne Warnung.<br>
+          <strong>Neu:</strong> Jeder geänderte Betrag wird sofort übernommen. Der Button "Speichern" entfällt, unter den Kategorien steht "Änderungen werden automatisch gespeichert". Der Abgleich mit der Cloud läuft wie bisher.<br>
+          <strong>Sicherer:</strong> Beim Verlassen oder Schließen der App wird ein noch wartendes Speichern sofort geschrieben.<br>
+          <strong>Einkommen:</strong> Eine abweichende Einkommen-Einstellung eines Monats ändert sich nur im Einkommen-Fenster, nicht mehr beim Speichern der Beträge.<br>
+          <strong>Unverändert:</strong> Kopieren und Löschen, Fixkosten, Sparkonten, Rechenlogik.<br>
+          <strong>Was testen:</strong> Betrag eintippen, "Fertig", Monat wechseln und zurück: Betrag ist da. App schließen und neu öffnen: Betrag ist da. Zweites Gerät: Betrag erscheint nach dem Abgleich. Einkommen-Fenster: "Nur Januar abweichend" setzen, danach Beträge ändern: Abweichung bleibt.
+        </p>
+      </div>
+
       <!-- v4.20.1: PERFORMANCE - SCHNELLERER START -->
-      <div class="settings-card" style="background: #fefce8; border-color: #fde047; border-width: 3px;">
-        <p style="font-size: 13px; font-weight: 700; color: #713f12; margin-bottom: 0.5rem;">⚡ v4.20.1 - Performance: Schnellerer Start (aktuell)</p>
+      <div class="settings-card" style="background: #fefce8; border-color: #fde047;">
+        <p style="font-size: 13px; font-weight: 700; color: #713f12; margin-bottom: 0.5rem;">⚡ v4.20.1 - Performance: Schnellerer Start</p>
         <p style="font-size: 12px; color: #854d0e; line-height: 1.6; margin: 0;">
           <strong>Release Notes:</strong> Der Tab wird jetzt erst beim ersten Öffnen aufgebaut statt bei jedem App-Start. Inhalt und Reihenfolge sind unverändert. Die Release Notes machten rund 41 % der Datei und die Hälfte aller Seitenelemente aus.<br>
           <strong>Aufgeräumt:</strong> 11 Funktionen entfernt, die nirgends mehr aufgerufen wurden (Reste der alten Gehalts-Fenster und Fixkosten-Hilfsfunktionen).<br>
@@ -5328,14 +5342,26 @@ function initDOMCache() {
 
 // 2️⃣ DEBOUNCE für saveAllData - speichert nur alle 500ms
 let saveTimeout;
+let savePending = false;   // v4.21.0: wartet ein Speichern auf den Timer?
+function writeAllDataNow() {
+  savePending = false;
+  const dataString = JSON.stringify(allData);
+  localStorage.setItem('haushaltsbuch_multiuser', dataString);
+  try { if (typeof cloudOnLocalSaved === 'function') cloudOnLocalSaved(dataString); } catch (e) { console.warn('cloudOnLocalSaved:', e); }
+}
 function debouncedSaveAllData() {
   clearTimeout(saveTimeout);
-  saveTimeout = setTimeout(() => {
-    const dataString = JSON.stringify(allData);
-    localStorage.setItem('haushaltsbuch_multiuser', dataString);
-    try { if (typeof cloudOnLocalSaved === 'function') cloudOnLocalSaved(dataString); } catch (e) { console.warn('cloudOnLocalSaved:', e); }
-  }, 500);
+  savePending = true;
+  saveTimeout = setTimeout(writeAllDataNow, 500);
 }
+// v4.21.0: Beim Verlassen/Schliessen der App sofort schreiben (Autospeichern darf nichts verlieren)
+function flushPendingSave() {
+  if (!savePending) return;
+  clearTimeout(saveTimeout);
+  try { writeAllDataNow(); } catch (e) { console.warn('flushPendingSave:', e); }
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushPendingSave(); });
+window.addEventListener('pagehide', flushPendingSave);
 
 // saveAllData → leitet immer durch debouncedSaveAllData (v4.7.4: Doppel-Definition entfernt)
 function saveAllData() {
@@ -6582,7 +6608,7 @@ function renderInputs() {
         const subcat = posten.name;
         const value = monthData[catName] && monthData[catName][subcat] ? monthData[catName][subcat] : '';
         const inputId = (catName + '_' + subcat).replace(/[^a-zA-Z0-9]/g, '');
-        subHtml += `<div class="subcategory-box"><label class="subcat-label">${subcat}</label><input type="number" step="0.01" id="${inputId}" value="${value}" onchange="debouncedUpdateSummary()"></div>`;
+        subHtml += `<div class="subcategory-box"><label class="subcat-label">${subcat}</label><input type="number" step="0.01" id="${inputId}" value="${value}" onchange="onBudgetInputChange()"></div>`;
       });
 
     // ✨ v3.8.0: Add dynamic Fixkosten items from same category
@@ -9214,11 +9240,17 @@ function saveMonth() {
     });
   }
   
-  const monthlyIncomeInput = parseFloat(document.getElementById('monthlyIncome').value);
-  if (monthlyIncomeInput && monthlyIncomeInput > 0) monthData.monthlyIncome = monthlyIncomeInput;
+  // v4.21.0: Die Einkommen-Abweichung des Monats wird nur im Einkommen-Fenster geaendert; hier unveraendert uebernehmen
+  const prevMonth = allData.users[currentUser].data[currentYear][monthKey];
+  if (prevMonth && prevMonth.monthlyIncome > 0) monthData.monthlyIncome = prevMonth.monthlyIncome;
   allData.users[currentUser].data[currentYear][monthKey] = monthData;
   saveAllData();
-  showSuccessMessage(`✅ ${monthKey} ${currentYear} gespeichert!`);
+}
+
+// v4.21.0: Jede Aenderung eines Betrags wird sofort uebernommen (synchron, damit ein Monatswechsel nichts verliert)
+function onBudgetInputChange() {
+  saveMonth();
+  debouncedUpdateSummary();
 }
 
 // ============================================================
