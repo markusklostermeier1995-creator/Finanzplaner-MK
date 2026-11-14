@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Gehaltsplaner CB">
   <meta name="theme-color" content="#3B82F6">
-  <title>Gehaltsplaner Pro v4.11.0 - Option A (Option A: Tab-Lokalisiert)</title>
+  <title>Gehaltsplaner Pro v4.12.0 - Option A (Option A: Tab-Lokalisiert)</title>
   <script>
     // Async load Chart.js with fallback
     const script = document.createElement('script');
@@ -78,6 +78,10 @@ select { padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; font-siz
 .kat-card-meta { font-size: 11px; opacity: 0.6; margin-top: 2px; }
 .kat-card-right { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
 .kat-card-total { font-size: 15px; font-weight: 700; color: #3B82F6; }
+.serie-badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 3px; margin-left: 0.4rem; background: #dcfce7; color: #166534; }
+.serie-badge.ov { background: #fef3c7; color: #92400e; }
+.serie-scope-box { background: #f0fdf4; border: 1px solid #86efac; border-radius: 6px; padding: 0.5rem 0.6rem; }
+.serie-scope-hint { font-size: 11px; color: #166534; margin: 0.35rem 0 0 0; line-height: 1.4; }
 .kat-dragging { position: fixed !important; z-index: 99990; margin: 0 !important; box-shadow: 0 10px 30px rgba(0,0,0,.25); transform: scale(1.02); opacity: .95; pointer-events: none; }
 .kat-placeholder { border: 2px dashed #93c5fd; border-radius: 8px; box-sizing: border-box; margin-bottom: 0.75rem; background: rgba(59,130,246,.06); }
 body.kat-drag-active { cursor: grabbing; -webkit-user-select: none; user-select: none; }
@@ -1177,7 +1181,7 @@ small { font-size: 12px; color: #999; }
         <p>Jahresplanung & Budgetierung deines Einkommens</p>
       </div>
       <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
-        <div class="version">v4.11.0</div>
+        <div class="version">v4.12.0</div>
         <div style="font-size: 10px; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.5px;">🔒 CLOSED BETA</div>
       </div>
     </div>
@@ -1368,6 +1372,12 @@ small { font-size: 12px; color: #999; }
             <input type="number" id="modalBetrag" placeholder="100" step="0.01" />
           </div>
 
+          <div class="fixkosten-modal-field serie-scope-box">
+            <label class="fixkosten-modal-label">Gilt für</label>
+            <select id="modalScope" onchange="updateSerieScopeHint('fixkosten')"></select>
+            <p class="serie-scope-hint" id="modalScopeHint"></p>
+          </div>
+
           <div class="fixkosten-modal-actions">
             <button class="fixkosten-modal-btn-save" onclick="saveFixkostenFromModal()">Speichern</button>
             <button class="fixkosten-modal-btn-cancel" onclick="closeFixkostenModal()">Abbrechen</button>
@@ -1390,6 +1400,11 @@ small { font-size: 12px; color: #999; }
             </p>
             <p style="font-size: 13px; color: #333; margin: 0.75rem 0 0 0; font-weight: 600; word-break: break-word;" id="deleteItemName"></p>
             <p style="font-size: 12px; color: #999; margin: 0.5rem 0 0 0;">Diese Aktion kann nicht rückgängig gemacht werden.</p>
+          </div>
+
+          <div class="fixkosten-modal-field serie-scope-box" id="deleteScopeBox" style="display: none; margin-bottom: 1rem;">
+            <label class="fixkosten-modal-label">Löschen für</label>
+            <select id="deleteScope"></select>
           </div>
 
           <div class="fixkosten-modal-actions">
@@ -1518,6 +1533,12 @@ small { font-size: 12px; color: #999; }
             <input type="number" id="sparkontenModalBetrag" placeholder="100" step="0.01" />
           </div>
 
+          <div class="sparkonten-modal-field serie-scope-box">
+            <label class="sparkonten-modal-label">Gilt für</label>
+            <select id="sparkontenModalScope" onchange="updateSerieScopeHint('sparkonten')"></select>
+            <p class="serie-scope-hint" id="sparkontenModalScopeHint"></p>
+          </div>
+
           <div class="sparkonten-modal-actions">
             <button class="sparkonten-modal-btn-save" onclick="saveSparkontenFromModal()">Speichern</button>
             <button class="sparkonten-modal-btn-cancel" onclick="closeSparkontenModal()">Abbrechen</button>
@@ -1540,6 +1561,11 @@ small { font-size: 12px; color: #999; }
             </p>
             <p style="font-size: 13px; color: #333; margin: 0.75rem 0 0 0; font-weight: 600; word-break: break-word;" id="deleteItemNameSparkonten"></p>
             <p style="font-size: 12px; color: #999; margin: 0.5rem 0 0 0;">Diese Aktion kann nicht rückgängig gemacht werden.</p>
+          </div>
+
+          <div class="sparkonten-modal-field serie-scope-box" id="deleteScopeBoxSparkonten" style="display: none; margin-bottom: 1rem;">
+            <label class="sparkonten-modal-label">Löschen für</label>
+            <select id="deleteScopeSparkonten"></select>
           </div>
 
           <div class="sparkonten-modal-actions">
@@ -1736,9 +1762,22 @@ small { font-size: 12px; color: #999; }
         </p>
       </div>
 
-      <!-- v4.11.0: FEATURE - DRAG & DROP SORTIERUNG -->
+      <!-- v4.12.0: FEATURE - GÜLTIGKEIT AB JAHR + ÜBERSCHREIBEN PRO JAHR -->
       <div class="settings-card" style="background: #f0fdf4; border-color: #86efac; border-width: 3px;">
-        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">✨ v4.11.0 - Feature: Kategorien per Drag &amp; Drop sortieren (aktuell)</p>
+        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">✨ v4.12.0 - Feature: Fixkosten &amp; Sparkonten mit Gültigkeit (aktuell)</p>
+        <p style="font-size: 12px; color: #15803d; line-height: 1.6; margin: 0;">
+          ✅ <strong>Neu anlegen:</strong> Feld "Gilt für" - "Nur 2026" oder "Ab 2026 (alle folgenden Jahre)". Spätere Jahre übernehmen den Eintrag automatisch.<br>
+          ✅ <strong>Ändern:</strong> "Nur dieses Jahr" (überschreibt nur dieses Jahr, Badge "angepasst"), "Ab diesem Jahr" oder "Alle Jahre". Beispiel: Miete steigt 2027 → Eintrag 2027 öffnen, Betrag ändern, "Ab 2027" wählen.<br>
+          ✅ <strong>Löschen:</strong> ebenfalls "Nur dieses Jahr / Ab diesem Jahr / In allen Jahren".<br>
+          ✅ <strong>Bestehende Einträge</strong> bleiben unverändert (gelten weiter nur für ihr Jahr) und können über "Ändern → Ab diesem Jahr" zur Serie werden.<br>
+          ℹ️ Einzeln angepasste Jahre bleiben bei "Ab diesem Jahr" unverändert. Ein Enddatum gibt es noch nicht (Löschen "Ab diesem Jahr" beendet die Serie).<br>
+          🧪 <strong>Was testen:</strong> Neuer Eintrag "Ab 2026" → Jahr 2027 prüfen · Betrag 2027 "Ab 2027" ändern → 2026 bleibt · Nur 2028 ändern → 2029 behält den Serienwert · Löschen-Varianten · Summen in der Budgetplanung
+        </p>
+      </div>
+
+      <!-- v4.11.0: FEATURE - DRAG & DROP SORTIERUNG -->
+      <div class="settings-card" style="background: #f0fdf4; border-color: #86efac;">
+        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">✨ v4.11.0 - Feature: Kategorien per Drag &amp; Drop sortieren</p>
         <p style="font-size: 12px; color: #15803d; line-height: 1.6; margin: 0;">
           ✅ <strong>Budgetplanung:</strong> Die Kategorie-Cards lassen sich per Ziehen sortieren. Am Handy Card ca. 0,4 s gedrückt halten, dann verschieben. Am Mac einfach ziehen.<br>
           ✅ <strong>Pro Benutzer gespeichert</strong> und im JSON-Export enthalten. Gilt nur für die Budgetplanung, andere Tabs behalten ihre Reihenfolge.<br>
@@ -5071,7 +5110,7 @@ function precomputeFixkostenChartData() {
     return null;
   }
   
-  const fixkosten = allData.users[currentUser].fixkosten[currentYear] || [];
+  const fixkosten = serienList('fixkosten');
   
   if (fixkosten.length === 0) {
     fixkostenChartCache.data = null;
@@ -5138,7 +5177,7 @@ function precomputeSparkontenChartData() {
     return null;
   }
   
-  const sparkonten = allData.users[currentUser].sparkonten[currentYear] || [];
+  const sparkonten = serienList('sparkonten');
   
   if (sparkonten.length === 0) {
     sparkontenChartCache.data = null;
@@ -6205,10 +6244,10 @@ function renderInputs() {
     }
 
     // Get fixkosten items for dynamic display
-    const fixkosten = allData.users[currentUser].fixkosten[currentYear] || [];
+    const fixkosten = serienList('fixkosten');
     
     // Get sparkonten items for dynamic display (NEU!)
-    const sparkonten = allData.users[currentUser].sparkonten[currentYear] || [];
+    const sparkonten = serienList('sparkonten');
 
     let html = '';
     // v4.6.2: Dynamische Kategorien statt hardcodierter CATEGORIES
@@ -6406,6 +6445,144 @@ document.addEventListener('keydown', function (e) {
   if (e.key === 'Escape' && activeKatIdx !== null) closeKatModal();
 });
 
+// ===== v4.12.0: GÜLTIGKEIT AB JAHR + ÜBERSCHREIBEN PRO JAHR =====
+// Datenmodell: Fixkosten/Sparkonten bleiben pro Jahr gespeichert (user.fixkosten[Jahr]).
+// Serien-Einträge haben zusätzlich: sid (Serien-ID), scope:'from', von (Startjahr), ov:true (in diesem Jahr einzeln angepasst).
+// Neue Jahre übernehmen die Serien automatisch (ensureSerienForYear). user.serienEnde[sid] = Jahr, ab dem eine Serie nicht mehr gilt.
+function serienNewId() { return 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+function serienYears(kind) {
+  const u = allData.users[currentUser];
+  return Object.keys((u && u[kind]) || {}).map(Number).filter(n => !isNaN(n)).sort((a, b) => a - b);
+}
+function ensureSerienForYear(kind, year) {
+  const u = allData.users[currentUser];
+  if (!u) return;
+  year = parseInt(year);
+  if (!u[kind]) u[kind] = {};
+  if (Array.isArray(u[kind][year])) return;
+  const ende = u.serienEnde || {};
+  const latest = {};
+  serienYears(kind).filter(y => y < year).forEach(y => {
+    (u[kind][y] || []).forEach(it => { if (it && it.sid && it.scope === 'from' && !it.ov) latest[it.sid] = it; });
+  });
+  const out = [];
+  Object.keys(latest).forEach(sid => {
+    if (ende[sid] !== undefined && ende[sid] <= year) return;
+    out.push(Object.assign({}, latest[sid]));
+  });
+  if (out.length) u[kind][year] = out;
+}
+function serienList(kind) {
+  const u = allData.users[currentUser];
+  if (!u) return [];
+  ensureSerienForYear(kind, currentYear);
+  return (u[kind] && u[kind][currentYear]) || [];
+}
+function serienPropagate(kind, item, fromYear) {
+  const u = allData.users[currentUser];
+  serienYears(kind).filter(y => y > fromYear).forEach(y => {
+    const list = u[kind][y];
+    if (!Array.isArray(list)) return;
+    if (list.some(i => i.category === item.category && i.name === item.name)) return;
+    list.push(Object.assign({}, item, { ov: false }));
+  });
+}
+function serienSaveItem(kind, idx, data, scope) {
+  const u = allData.users[currentUser];
+  const y = parseInt(currentYear);
+  if (!u[kind]) u[kind] = {};
+  if (!u[kind][y]) u[kind][y] = [];
+  const arr = u[kind][y];
+  if (idx === -1) {
+    const item = Object.assign({}, data);
+    if (scope === 'from') { item.sid = serienNewId(); item.scope = 'from'; item.von = y; }
+    arr.push(item);
+    if (scope === 'from') serienPropagate(kind, item, y);
+    return;
+  }
+  const old = arr[idx];
+  if (!old) return;
+  if (old.sid && old.scope === 'from') {
+    if (scope === 'year') {
+      arr[idx] = Object.assign({}, old, data, { ov: true });
+    } else if (scope === 'from') {
+      arr[idx] = Object.assign({}, old, data, { ov: false });
+      serienYears(kind).filter(yy => yy > y).forEach(yy => {
+        (u[kind][yy] || []).forEach((it, i) => { if (it.sid === old.sid && !it.ov) u[kind][yy][i] = Object.assign({}, it, data); });
+      });
+    } else {
+      serienYears(kind).forEach(yy => {
+        (u[kind][yy] || []).forEach((it, i) => { if (it.sid === old.sid) u[kind][yy][i] = Object.assign({}, it, data, { ov: false }); });
+      });
+    }
+  } else if (scope === 'from') {
+    const item = Object.assign({}, data, { sid: serienNewId(), scope: 'from', von: y });
+    arr[idx] = item;
+    serienPropagate(kind, item, y);
+  } else {
+    arr[idx] = Object.assign({}, data);
+  }
+}
+function serienDeleteItem(kind, idx, scope) {
+  const u = allData.users[currentUser];
+  const y = parseInt(currentYear);
+  const arr = (u[kind] && u[kind][y]) || [];
+  const it = arr[idx];
+  if (!it) return;
+  if (!(it.sid && it.scope === 'from') || scope === 'year') { arr.splice(idx, 1); return; }
+  if (!u.serienEnde) u.serienEnde = {};
+  const sid = it.sid;
+  serienYears(kind).filter(yy => scope === 'all' || yy >= y).forEach(yy => {
+    u[kind][yy] = (u[kind][yy] || []).filter(i => i.sid !== sid);
+  });
+  u.serienEnde[sid] = scope === 'all' ? 0 : y;
+}
+function serieBadgeHtml(item) {
+  if (!item || !item.sid || item.scope !== 'from') return '';
+  return item.ov ? ' <span class="serie-badge ov">✏️ in diesem Jahr angepasst</span>' : ' <span class="serie-badge">🔁 ab ' + item.von + '</span>';
+}
+function serieScopeOptions(item, isNew) {
+  const y = currentYear;
+  const opts = [{ v: 'year', l: 'Nur ' + y }, { v: 'from', l: 'Ab ' + y + ' (alle folgenden Jahre)' }];
+  if (!isNew && item && item.sid && item.scope === 'from') opts.push({ v: 'all', l: 'Alle Jahre (auch frühere)' });
+  return opts;
+}
+function serieScopeHintText(v, isSerie) {
+  if (v === 'from') return 'Gilt ab ' + currentYear + '. Spätere Jahre übernehmen es automatisch, einzeln angepasste Jahre bleiben unverändert.';
+  if (v === 'all') return 'Ändert den Eintrag in allen Jahren, auch in einzeln angepassten.';
+  return isSerie ? 'Nur ' + currentYear + ' wird geändert, andere Jahre behalten ihren Wert.' : 'Gilt nur für ' + currentYear + '.';
+}
+function fillSerieScope(selId, hintId, opts) {
+  const sel = document.getElementById(selId);
+  if (!sel) return;
+  sel.innerHTML = '';
+  opts.forEach(o => { const op = document.createElement('option'); op.value = o.v; op.textContent = o.l; sel.appendChild(op); });
+  sel.value = 'year';
+  sel.setAttribute('data-serie', opts.length > 2 ? '1' : '');
+  const hint = document.getElementById(hintId);
+  if (hint) hint.textContent = serieScopeHintText('year', opts.length > 2);
+}
+function updateSerieScopeHint(kind) {
+  const selId = kind === 'fixkosten' ? 'modalScope' : 'sparkontenModalScope';
+  const hintId = kind === 'fixkosten' ? 'modalScopeHint' : 'sparkontenModalScopeHint';
+  const sel = document.getElementById(selId), hint = document.getElementById(hintId);
+  if (sel && hint) hint.textContent = serieScopeHintText(sel.value, !!sel.getAttribute('data-serie'));
+}
+function fillDeleteScope(boxId, selId, item) {
+  const box = document.getElementById(boxId), sel = document.getElementById(selId);
+  if (!box || !sel) return;
+  sel.innerHTML = '';
+  if (item && item.sid && item.scope === 'from') {
+    [['year', 'Nur ' + currentYear], ['from', 'Ab ' + currentYear + ' (und alle folgenden Jahre)'], ['all', 'In allen Jahren']].forEach(o => {
+      const op = document.createElement('option'); op.value = o[0]; op.textContent = o[1]; sel.appendChild(op);
+    });
+    sel.value = 'year';
+    box.style.display = 'block';
+  } else {
+    box.style.display = 'none';
+  }
+}
+
 // ===== v4.11.0: DRAG & DROP SORTIERUNG DER BUDGET-CARDS =====
 function katKey(kat, idx) { return kat && kat.id ? String(kat.id) : 'idx' + idx; }
 function getKategorieBudgetOrder(kategorien) {
@@ -6541,24 +6718,27 @@ function getMonthIncome(monthKey) {
 }
 
 function getFixkostenByCategory(catName) {
+  ensureSerienForYear('fixkosten', currentYear);
   if (!allData.users[currentUser].fixkosten) allData.users[currentUser].fixkosten = {};
-  const fixkosten = allData.users[currentUser].fixkosten[currentYear] || [];
+  const fixkosten = serienList('fixkosten');
   const catFixkosten = fixkosten.filter(item => item.category === catName && item.type === 'jahresausgabe');
   const summe = catFixkosten.reduce((acc, item) => acc + (parseFloat(item.betrag) || 0), 0);
   return Math.round((summe / 12) * 100) / 100;
 }
 
 function getSparkontenByCategory(catName) {
+  ensureSerienForYear('sparkonten', currentYear);
   if (!allData.users[currentUser].sparkonten) allData.users[currentUser].sparkonten = {};
-  const sparkonten = allData.users[currentUser].sparkonten[currentYear] || [];
+  const sparkonten = serienList('sparkonten');
   const catSparkonten = sparkonten.filter(item => item.category === catName && item.type === 'jahresausgabe');
   const summe = catSparkonten.reduce((acc, item) => acc + (parseFloat(item.betrag) || 0), 0);
   return Math.round((summe / 12) * 100) / 100;
 }
 
 function getFixkostenTotal() {
+  ensureSerienForYear('fixkosten', currentYear);
   if (!allData.users[currentUser].fixkosten) allData.users[currentUser].fixkosten = {};
-  const fixkosten = allData.users[currentUser].fixkosten[currentYear] || [];
+  const fixkosten = serienList('fixkosten');
   
   // v4.6.3: Tag-basiert statt hardcodierter SPAR_KATEGORIEN Liste
   let jahresausgaben = 0, monatsausgaben = 0;
@@ -6589,8 +6769,9 @@ function getFixkostenTotal() {
 
 // ✨ v4.0.7.6: Berechne Sparkonten-Gesamtbetrag
 function getSparkontenTotal() {
+  ensureSerienForYear('sparkonten', currentYear);
   if (!allData.users[currentUser].sparkonten) allData.users[currentUser].sparkonten = {};
-  const sparkonten = allData.users[currentUser].sparkonten[currentYear] || [];
+  const sparkonten = serienList('sparkonten');
   
   // v4.6.3: Tag-basiert statt hardcodierter SPAR_KATEGORIEN Liste
   let jahresausgaben = 0, monatsausgaben = 0;
@@ -6719,6 +6900,7 @@ function updateYearStandardDisplay() {
 
 function renderFixkosten() {
   try {
+    ensureSerienForYear('fixkosten', currentYear);
     // Safety check
     if (!currentUser || !allData.users || !allData.users[currentUser]) {
       console.warn('renderFixkosten: Missing user data');
@@ -6728,7 +6910,7 @@ function renderFixkosten() {
     if (!allData.users[currentUser].fixkosten) allData.users[currentUser].fixkosten = {};
     // WICHTIG: Nicht automatisch ein leeres Array erstellen!
     // Das verhindert dass leere Fixkosten angelegt werden
-    const fixkosten = allData.users[currentUser].fixkosten[currentYear] || [];
+    const fixkosten = serienList('fixkosten');
     
     // Gruppiere Fixkosten nach Kategorie
     const kategorienNamenFk = getKategorien().map(k => k.name);
@@ -6801,7 +6983,7 @@ function renderFixkosten() {
       htmlParts.push(`<div class="fixkosten-item" style="cursor: pointer; background: ${item.isStandard ? '#eff6ff' : '#f9fafb'}; border: 1px solid ${item.isStandard ? '#bfdbfe' : '#e5e7eb'}; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.75rem;" onclick="openFixkostenModal(${item.idx})">
         <div style="flex: 1; min-width: 150px;">
           <div style="font-size: 13px; font-weight: 600; color: #333;">${item.name}${standardBadge}</div>
-          <div style="font-size: 11px; color: #999; margin-top: 0.25rem;">${item.type === 'jahresausgabe' ? 'Jahresausgabe' : 'Monatsausgabe'}</div>
+          <div style="font-size: 11px; color: #999; margin-top: 0.25rem;">${item.type === 'jahresausgabe' ? 'Jahresausgabe' : 'Monatsausgabe'}${serieBadgeHtml(item)}</div>
         </div>
         <div style="text-align: right; min-width: 80px;">
           <div style="font-size: 13px; font-weight: 600; color: #3B82F6;">€${monthlyAmount}</div>
@@ -6870,6 +7052,7 @@ function toggleSparkontenSection() {
 
 function renderSparkonten() {
   try {
+    ensureSerienForYear('sparkonten', currentYear);
     // Safety check
     if (!currentUser || !allData.users || !allData.users[currentUser]) {
       console.warn('renderSparkonten: Missing user data');
@@ -6879,7 +7062,7 @@ function renderSparkonten() {
     if (!allData.users[currentUser].sparkonten) allData.users[currentUser].sparkonten = {};
     // WICHTIG: Nicht automatisch ein leeres Array erstellen!
     // Das verhindert dass leere Sparkonten angelegt werden
-    const sparkonten = allData.users[currentUser].sparkonten[currentYear] || [];
+    const sparkonten = serienList('sparkonten');
     
     // Gruppiere Sparkonten nach Kategorie
     const kategorienNamen = getKategorien().map(k => k.name);
@@ -6966,7 +7149,7 @@ function renderSparkonten() {
       htmlParts.push(`<div class="fixkosten-item" style="cursor: pointer; background: #f0fdf4; border: 1px solid #86efac; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.75rem;" onclick="openSparkontenModal(${item.idx})">
         <div style="flex: 1; min-width: 150px;">
           <div style="font-size: 13px; font-weight: 600; color: #333;">${item.name}${sparenBadge}</div>
-          <div style="font-size: 11px; color: #999; margin-top: 0.25rem;">${item.type === 'jahresausgabe' ? 'Jahresausgabe' : 'Monatsausgabe'}</div>
+          <div style="font-size: 11px; color: #999; margin-top: 0.25rem;">${item.type === 'jahresausgabe' ? 'Jahresausgabe' : 'Monatsausgabe'}${serieBadgeHtml(item)}</div>
         </div>
         <div style="text-align: right; min-width: 80px;">
           <div style="font-size: 13px; font-weight: 600; color: #16a34a;">€${monthlyAmount}</div>
@@ -7071,7 +7254,8 @@ function openFixkostenModal(idx, isNew = false) {
     betragElem.value = item.betrag || '';
   }
   
-  modal.classList.add('active');
+  { const _it = isNew ? null : serienList('fixkosten')[idx]; fillSerieScope('modalScope', 'modalScopeHint', serieScopeOptions(_it, isNew)); }
+    modal.classList.add('active');
   nameElem.focus();
 }
 
@@ -7112,7 +7296,8 @@ function openSparkontenModal(idx, isNew = false) {
     betragElem.value = item.betrag || '';
   }
   
-  modal.classList.add('active');
+  { const _it = isNew ? null : serienList('sparkonten')[idx]; fillSerieScope('sparkontenModalScope', 'sparkontenModalScopeHint', serieScopeOptions(_it, isNew)); }
+    modal.classList.add('active');
   nameElem.focus();
 }
 
@@ -7172,23 +7357,9 @@ function saveFixkostenFromModal() {
   }
   
   // Wenn idx === -1, dann NEUE Fixkosten (push), sonst UPDATE (array access)
-  if (idx === -1) {
-    // NEUE Fixkosten hinzufügen
-    allData.users[currentUser].fixkosten[currentYear].push({
-      type: type,
-      category: category,
-      name: name,
-      betrag: betrag
-    });
-  } else {
-    // EXISTIERENDE Fixkosten aktualisieren
-    allData.users[currentUser].fixkosten[currentYear][idx] = {
-      type: type,
-      category: category,
-      name: name,
-      betrag: betrag
-    };
-  }
+  // v4.12.0: Gültigkeit (nur dieses Jahr / ab diesem Jahr / alle Jahre)
+  const _scopeEl = document.getElementById('modalScope');
+  serienSaveItem('fixkosten', idx, { type: type, category: category, name: name, betrag: betrag }, _scopeEl ? _scopeEl.value : 'year');
   
   saveAllData();
   closeFixkostenModal();
@@ -7263,23 +7434,9 @@ function saveSparkontenFromModal() {
   }
   
   // Wenn idx === -1, dann NEUE Sparkonten (push), sonst UPDATE (array access)
-  if (idx === -1) {
-    // NEUE Sparkonten hinzufügen
-    allData.users[currentUser].sparkonten[currentYear].push({
-      type: type,
-      category: category,
-      name: name,
-      betrag: betrag
-    });
-  } else {
-    // EXISTIERENDE Sparkonten aktualisieren
-    allData.users[currentUser].sparkonten[currentYear][idx] = {
-      type: type,
-      category: category,
-      name: name,
-      betrag: betrag
-    };
-  }
+  // v4.12.0: Gültigkeit (nur dieses Jahr / ab diesem Jahr / alle Jahre)
+  const _scopeEl = document.getElementById('sparkontenModalScope');
+  serienSaveItem('sparkonten', idx, { type: type, category: category, name: name, betrag: betrag }, _scopeEl ? _scopeEl.value : 'year');
   
   saveAllData();
   closeSparkontenModal();
@@ -7438,6 +7595,7 @@ function openDeleteConfirm(event, idx, itemName) {
   event.stopPropagation();
   pendingDeleteIdx = idx;
   document.getElementById('deleteItemName').textContent = itemName;
+  fillDeleteScope('deleteScopeBox', 'deleteScope', serienList('fixkosten')[idx]);
   document.getElementById('deleteConfirmModal').classList.add('active');
 }
 
@@ -7445,6 +7603,7 @@ function openDeleteConfirmSparkonten(event, idx, itemName) {
   event.stopPropagation();
   window.pendingDeleteIdxSparkonten = idx;
   document.getElementById('deleteItemNameSparkonten').textContent = itemName;
+  fillDeleteScope('deleteScopeBoxSparkonten', 'deleteScopeSparkonten', serienList('sparkonten')[idx]);
   document.getElementById('deleteConfirmModalSparkonten').classList.add('active');
 }
 
@@ -7480,7 +7639,7 @@ function deleteFixkosten(idx) {
   const itemName = item ? item.name : 'Eintrag';
   
   // Löschen
-  allData.users[currentUser].fixkosten[currentYear].splice(idx, 1);
+  serienDeleteItem('fixkosten', idx, (document.getElementById('deleteScope') || {}).value || 'year');
   saveAllData();
   renderFixkosten();
   renderInputs();  // ✨ v3.8.0: Update input tab
@@ -7498,7 +7657,7 @@ function deleteSparkonten(idx) {
   const itemName = item ? item.name : 'Eintrag';
   
   // Löschen
-  allData.users[currentUser].sparkonten[currentYear].splice(idx, 1);
+  serienDeleteItem('sparkonten', idx, (document.getElementById('deleteScopeSparkonten') || {}).value || 'year');
   saveAllData();
   renderSparkonten();
   renderInputs();  // ✨ v3.8.0: Update input tab
@@ -7537,7 +7696,7 @@ function updateFixkostenMonthlyDisplay() {
   
   // v4.1.1 BUGFIX: Sammle tatsächliche Fixkosten-Kategorien statt BUDGET-Kategorien zu nutzen
   if (!allData.users[currentUser].fixkosten) allData.users[currentUser].fixkosten = {};
-  const fixkosten = allData.users[currentUser].fixkosten[currentYear] || [];
+  const fixkosten = serienList('fixkosten');
   
   // Gruppiere nach tatsächlichen Kategorien UND nach Type
   const groupedByCategory = {};
@@ -7589,7 +7748,7 @@ function updateSparkontenMonthlyDisplay() {
   
   // v4.1.1 BUGFIX: Sammle tatsächliche Sparkonten-Kategorien statt BUDGET-Kategorien zu nutzen
   if (!allData.users[currentUser].sparkonten) allData.users[currentUser].sparkonten = {};
-  const sparkonten = allData.users[currentUser].sparkonten[currentYear] || [];
+  const sparkonten = serienList('sparkonten');
   
   // Gruppiere nach tatsächlichen Kategorien UND nach Type
   const groupedByCategory = {};
@@ -8544,7 +8703,7 @@ function executeDeleteAllSparkonten(year) {
 // v4.8.3: DATEN-EXPORT / -IMPORT (JSON)
 // ============================================================
 const BACKUP_APP_NAME = 'Gehaltsplaner Pro';
-const BACKUP_APP_VERSION = '4.11.0';
+const BACKUP_APP_VERSION = '4.12.0';
 
 // Meldung nach dem Schließen des Menüs zeigen (alert() wird von offenen Modals blockiert)
 function dataBackupAlert(message) {
