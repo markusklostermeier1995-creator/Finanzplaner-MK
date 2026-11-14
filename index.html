@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Gehaltsplaner CB">
   <meta name="theme-color" content="#3B82F6">
-  <title>Gehaltsplaner Pro v4.22.0 - Option A (Option A: Tab-Lokalisiert)</title>
+  <title>Gehaltsplaner Pro v4.22.0.1 - Option A (Option A: Tab-Lokalisiert)</title>
   <script>
     // Async load Chart.js with fallback
     const script = document.createElement('script');
@@ -35,6 +35,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; c
 .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: #3B82F6; color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; flex-shrink: 0; font-size: 14px; }
 .user-select { padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; background: white; }
 .user-name { font-size: 14px; font-weight: 600; color: #333; white-space: nowrap; }
+.autosave-line { font-size: 11px; color: #999; text-align: center; margin: 0 0 0.75rem 0; }
+.link-subtle { background: none; border: none; padding: 0; font-size: 11px; color: #6b7280; text-decoration: underline; cursor: pointer; font-weight: 500; }
 .empty-hint { background: #eff6ff; border: 1px solid #93c5fd; color: #1e40af; border-radius: 8px; padding: 0.75rem; margin-bottom: 1rem; font-size: 12px; line-height: 1.5; }
 .empty-hint-title { font-weight: 700; margin-bottom: 0.5rem; }
 .empty-hint-actions { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -1256,6 +1258,7 @@ small { font-size: 12px; color: #999; }
 
   @media (prefers-color-scheme: dark) {
   .empty-hint { background-color: #182e3f !important; border-color: #3b5f85 !important; color: #bcd4f5 !important; }
+  .link-subtle { background: none !important; border: none !important; color: #9ca3af !important; }
 }
 </style>
 </head>
@@ -1498,7 +1501,7 @@ small { font-size: 12px; color: #999; }
         <p>Jahresplanung & Budgetierung deines Einkommens</p>
       </div>
       <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
-        <div class="version">v4.22.0</div>
+        <div class="version">v4.22.0.1</div>
         <div style="font-size: 10px; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.5px;">🔒 CLOSED BETA</div>
       </div>
     </div>
@@ -1584,12 +1587,8 @@ small { font-size: 12px; color: #999; }
       <!-- BUDGET KATEGORIEN -->
       <div id="categoriesContainer" style="margin-bottom: 1.5rem;"></div>
 
-      <p style="font-size: 11px; color: #999; text-align: center; margin: 0 0 0.75rem 0;">✓ Änderungen werden automatisch gespeichert</p>
-
-      <!-- DELETE BUTTON (v4.21.0: Speichern entfaellt, v4.22.0: Kopieren ersetzt durch Hinweis bei leerem Monat) -->
-      <div class="btn-group">
-        <button onclick="showDeleteWarning()" class="btn-danger">🗑️ Löschen</button>
-      </div>
+      <!-- v4.22.0.1: Statuszeile mit unauffaelligem Link statt rotem Loeschen-Button -->
+      <p class="autosave-line">✓ Änderungen werden automatisch gespeichert<span id="clearMonthWrap"> · <button type="button" class="link-subtle" onclick="showDeleteWarning()">Monat leeren</button></span></p>
     </div>
 
 
@@ -2066,9 +2065,20 @@ small { font-size: 12px; color: #999; }
         </p>
       </div>
 
+      <!-- v4.22.0.1: UI - MONAT LEEREN ALS LINK -->
+      <div class="settings-card" style="background: #fff7ed; border-color: #fed7aa; border-width: 3px;">
+        <p style="font-size: 13px; font-weight: 700; color: #9a3412; margin-bottom: 0.5rem;">🧹 v4.22.0.1 - UI: "Monat leeren" statt rotem Löschen-Button (aktuell)</p>
+        <p style="font-size: 12px; color: #c2410c; line-height: 1.6; margin: 0;">
+          <strong>Neu:</strong> Der große rote Button "Löschen" unter den Kategorien entfällt. Stattdessen steht in der Zeile "✓ Änderungen werden automatisch gespeichert" ein kleiner Link "Monat leeren". Die Rückfrage und die Wirkung sind unverändert: Es werden nur die Budget-Eingaben des Monats gelöscht, Fixkosten und Sparkonten bleiben.<br>
+          <strong>Nur wo sinnvoll:</strong> Der Link erscheint nur, wenn der Monat Beträge hat. In einem leeren Monat gibt es nichts zu leeren, dort steht der Hinweis zum Übernehmen.<br>
+          <strong>Unverändert:</strong> Rechenlogik, Daten, Speichern, Übernehmen aus anderen Monaten.<br>
+          <strong>Was testen:</strong> Monat mit Beträgen: Link "Monat leeren" tippen, Rückfrage, "Ja, löschen": Beträge weg, Fixkosten bleiben, Hinweis zum Übernehmen erscheint. Leerer Monat: kein Link. Dunkelmodus ansehen.
+        </p>
+      </div>
+
       <!-- v4.22.0: FEATURE - KOPIEREN ALS HINWEIS BEI LEEREM MONAT -->
-      <div class="settings-card" style="background: #f0fdf4; border-color: #86efac; border-width: 3px;">
-        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">📋 v4.22.0 - Feature: Beträge aus dem Vormonat übernehmen (aktuell)</p>
+      <div class="settings-card" style="background: #f0fdf4; border-color: #86efac;">
+        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">📋 v4.22.0 - Feature: Beträge aus dem Vormonat übernehmen</p>
         <p style="font-size: 12px; color: #15803d; line-height: 1.6; margin: 0;">
           <strong>Neu:</strong> Ist ein Monat noch leer, steht über den Kategorien ein Hinweis: "Noch keine Beträge für November 2026" mit dem Button "Aus Oktober 2026 übernehmen" und "Anderen Monat wählen …". Ein Tipp übernimmt die Beträge des Vormonats (über den Jahreswechsel auch Dezember → Januar).<br>
           <strong>Anderer Monat:</strong> "Anderen Monat wählen …" öffnet das bekannte Fenster mit Monat, Jahr und der Option, das Einkommen mitzukopieren. Als Vorgabe steht jetzt der Vormonat.<br>
@@ -9471,6 +9481,8 @@ function updateEmptyMonthHint() {
   const box = document.getElementById('emptyMonthHint');
   if (!box) return;
   try {
+    const wrap = document.getElementById('clearMonthWrap');   // v4.22.0.1: "Monat leeren" nur bei Monaten mit Betraegen
+    if (wrap) wrap.style.display = monthHasManualAmounts(currentYear, currentMonth) ? '' : 'none';
     const hasPosten = getKategorien().some(k => k.posten.length > 0);
     if (!hasPosten || monthHasManualAmounts(currentYear, currentMonth) || !anyOtherMonthHasAmounts()) { box.style.display = 'none'; return; }
     const prev = prevMonthOf(currentYear, currentMonth);
