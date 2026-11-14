@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Gehaltsplaner CB">
   <meta name="theme-color" content="#3B82F6">
-  <title>Gehaltsplaner Pro v4.17.2 - Option A (Option A: Tab-Lokalisiert)</title>
+  <title>Gehaltsplaner Pro v4.18.0 - Option A (Option A: Tab-Lokalisiert)</title>
   <script>
     // Async load Chart.js with fallback
     const script = document.createElement('script');
@@ -1291,7 +1291,7 @@ small { font-size: 12px; color: #999; }
         <p>Jahresplanung & Budgetierung deines Einkommens</p>
       </div>
       <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
-        <div class="version">v4.17.2</div>
+        <div class="version">v4.18.0</div>
         <div style="font-size: 10px; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.5px;">🔒 CLOSED BETA</div>
       </div>
     </div>
@@ -1482,6 +1482,15 @@ small { font-size: 12px; color: #999; }
             <input type="number" id="modalBetrag" placeholder="100" step="0.01" />
           </div>
 
+          <div class="fixkosten-modal-field">
+            <label class="fixkosten-modal-label">Enddatum (optional)</label>
+            <div style="display: flex; gap: 0.5rem;">
+              <select id="modalBisMonat" onchange="toggleBisYear('modalBisMonat','modalBisJahr')" style="flex: 1;"></select>
+              <select id="modalBisJahr" style="flex: 1;"></select>
+            </div>
+            <p class="serie-scope-hint">Letzter Monat, der noch zählt. Danach fällt der Eintrag aus den Ausgaben heraus.</p>
+          </div>
+
           <div class="fixkosten-modal-field serie-scope-box">
             <label class="fixkosten-modal-label">Gilt für</label>
             <select id="modalScope" onchange="updateSerieScopeHint('fixkosten')"></select>
@@ -1641,6 +1650,15 @@ small { font-size: 12px; color: #999; }
           <div class="sparkonten-modal-field">
             <label class="sparkonten-modal-label">Betrag (€)</label>
             <input type="number" id="sparkontenModalBetrag" placeholder="100" step="0.01" />
+          </div>
+
+          <div class="sparkonten-modal-field">
+            <label class="sparkonten-modal-label">Enddatum (optional)</label>
+            <div style="display: flex; gap: 0.5rem;">
+              <select id="sparkontenBisMonat" onchange="toggleBisYear('sparkontenBisMonat','sparkontenBisJahr')" style="flex: 1;"></select>
+              <select id="sparkontenBisJahr" style="flex: 1;"></select>
+            </div>
+            <p class="serie-scope-hint">Letzter Monat, der noch zählt. Danach fällt der Eintrag aus dem Sparen heraus.</p>
           </div>
 
           <div class="sparkonten-modal-field serie-scope-box">
@@ -1872,9 +1890,22 @@ small { font-size: 12px; color: #999; }
         </p>
       </div>
 
-      <!-- v4.17.2: BUGFIX - ABMELDUNG AUF ANDEREN GERAETEN -->
+      <!-- v4.18.0: FEATURE - ENDDATUM FIXKOSTEN/SPARKONTEN -->
       <div class="settings-card" style="background: #f0fdf4; border-color: #86efac; border-width: 3px;">
-        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">🐛 v4.17.2 - Bugfix: "Auf allen Geräten abmelden" wirkt jetzt sofort (aktuell)</p>
+        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">⏳ v4.18.0 - Feature: Enddatum für Fixkosten und Sparkonten (aktuell)</p>
+        <p style="font-size: 12px; color: #15803d; line-height: 1.6; margin: 0;">
+          <strong>Neu:</strong> Beim Anlegen oder Bearbeiten von Fixkosten und Sparkonten gibt es "Enddatum (optional)": Monat und Jahr, z. B. Oktober 2027 für einen Kredit. Der gewählte Monat ist der letzte, der noch zählt.<br>
+          <strong>Wirkung:</strong> Ab dem Monat danach zählt der Eintrag nicht mehr in Ausgaben bzw. Sparen (Budgetplanung, Fixkosten-/Sparkonten-Summen und Diagramme). Im Budgetplan verschwindet er aus der Kategorie. Die Ansicht folgt dem in der Budgetplanung gewählten Monat.<br>
+          <strong>Liste:</strong> In den Tabs Fixkosten und Sparkonten steht am Eintrag "⏳ bis Okt 2027". Ist er im gewählten Monat schon beendet, steht dort "beendet" und er zählt nicht mit.<br>
+          <strong>Mehrere Jahre:</strong> Das Enddatum folgt dem Feld "Gilt für" (nur dieses Jahr / ab diesem Jahr / alle Jahre). In Jahren nach dem Ende wird der Eintrag nicht mehr übernommen.<br>
+          <strong>Enddatum entfernen:</strong> Eintrag bearbeiten und "Kein Enddatum" wählen.<br>
+          <strong>Was testen:</strong> Fixkost "Kredit" anlegen, Enddatum z. B. Juni dieses Jahres. In der Budgetplanung Juni wählen: zählt. Juli wählen: Kredit fehlt in der Kategorie und in Ausgaben, im Tab Fixkosten steht "beendet".
+        </p>
+      </div>
+
+      <!-- v4.17.2: BUGFIX - ABMELDUNG AUF ANDEREN GERAETEN -->
+      <div class="settings-card" style="background: #f0fdf4; border-color: #86efac;">
+        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">🐛 v4.17.2 - Bugfix: "Auf allen Geräten abmelden" wirkt jetzt sofort</p>
         <p style="font-size: 12px; color: #15803d; line-height: 1.6; margin: 0;">
           <strong>Problem:</strong> Andere Geräte blieben nach "Auf allen Geräten abmelden" angemeldet, bis ihr Zugangsschlüssel nach etwa einer Stunde ablief.<br>
           <strong>Fix:</strong> Die App prüft die Sitzung beim Start, beim Zurückkehren in die App und vor jedem Abgleich beim Server (höchstens einmal pro Minute). Ist die Sitzung beendet, wird das Gerät abgemeldet, mit Hinweis. Lokale Daten bleiben erhalten.<br>
@@ -5306,7 +5337,7 @@ let sparkontenChartCache = {
 // Precompute Fixkosten Chart Daten (EINMAL statt mehrmals!)
 function precomputeFixkostenChartData() {
   // Cache Check - nur neu berechnen wenn Jahr sich geändert hat
-  if (fixkostenChartCache.currentYear === currentYear && fixkostenChartCache.data) {
+  if (fixkostenChartCache.currentYear === currentYear && fixkostenChartCache.currentMonth === currentMonth && fixkostenChartCache.data) {
     return fixkostenChartCache.data;
   }
   
@@ -5315,7 +5346,7 @@ function precomputeFixkostenChartData() {
     return null;
   }
   
-  const fixkosten = serienList('fixkosten');
+  const fixkosten = serienActive('fixkosten');
   
   if (fixkosten.length === 0) {
     fixkostenChartCache.data = null;
@@ -5365,6 +5396,7 @@ function precomputeFixkostenChartData() {
   
   fixkostenChartCache.data = result;
   fixkostenChartCache.currentYear = currentYear;
+  fixkostenChartCache.currentMonth = currentMonth;
   fixkostenChartCache.timestamp = Date.now();
   
   return result;
@@ -5373,7 +5405,7 @@ function precomputeFixkostenChartData() {
 // Precompute Sparkonten Chart Daten (EINMAL statt mehrmals!)
 function precomputeSparkontenChartData() {
   // Cache Check - nur neu berechnen wenn Jahr sich geändert hat
-  if (sparkontenChartCache.currentYear === currentYear && sparkontenChartCache.data) {
+  if (sparkontenChartCache.currentYear === currentYear && sparkontenChartCache.currentMonth === currentMonth && sparkontenChartCache.data) {
     return sparkontenChartCache.data;
   }
   
@@ -5382,7 +5414,7 @@ function precomputeSparkontenChartData() {
     return null;
   }
   
-  const sparkonten = serienList('sparkonten');
+  const sparkonten = serienActive('sparkonten');
   
   if (sparkonten.length === 0) {
     sparkontenChartCache.data = null;
@@ -5432,6 +5464,7 @@ function precomputeSparkontenChartData() {
   
   sparkontenChartCache.data = result;
   sparkontenChartCache.currentYear = currentYear;
+  sparkontenChartCache.currentMonth = currentMonth;
   sparkontenChartCache.timestamp = Date.now();
   
   return result;
@@ -6449,10 +6482,10 @@ function renderInputs() {
     }
 
     // Get fixkosten items for dynamic display
-    const fixkosten = serienList('fixkosten');
+    const fixkosten = serienActive('fixkosten');
     
     // Get sparkonten items for dynamic display (NEU!)
-    const sparkonten = serienList('sparkonten');
+    const sparkonten = serienActive('sparkonten');
 
     let html = '';
     // v4.6.2: Dynamische Kategorien statt hardcodierter CATEGORIES
@@ -7335,6 +7368,56 @@ function initCloud() {
 // Datenmodell: Fixkosten/Sparkonten bleiben pro Jahr gespeichert (user.fixkosten[Jahr]).
 // Serien-Einträge haben zusätzlich: sid (Serien-ID), scope:'from', von (Startjahr), ov:true (in diesem Jahr einzeln angepasst).
 // Neue Jahre übernehmen die Serien automatisch (ensureSerienForYear). user.serienEnde[sid] = Jahr, ab dem eine Serie nicht mehr gilt.
+// v4.18.0: Enddatum (optional) pro Fixkost/Sparkonto: item.bis = 'JJJJ-MM' (letzter Monat, der noch zaehlt)
+function serieAktiv(item, y, m) {
+  if (!item || !item.bis) return true;
+  const p = String(item.bis).split('-');
+  const by = parseInt(p[0]), bm = parseInt(p[1]);
+  if (isNaN(by) || isNaN(bm)) return true;
+  return (y * 12 + m) <= (by * 12 + bm - 1);
+}
+function serienActive(kind) {
+  return serienList(kind).filter(it => serieAktiv(it, currentYear, currentMonth));
+}
+function serieBisLabel(item) {
+  const p = String(item.bis).split('-');
+  const names = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+  return names[(parseInt(p[1]) || 1) - 1] + ' ' + p[0];
+}
+function endeBadgeHtml(item) {
+  if (!item || !item.bis) return '';
+  if (serieAktiv(item, currentYear, currentMonth)) return ' <span class="serie-badge" style="background:#e0f2fe;color:#075985;">⏳ bis ' + serieBisLabel(item) + '</span>';
+  return ' <span class="serie-badge" style="background:#fee2e2;color:#991b1b;">beendet (bis ' + serieBisLabel(item) + ')</span>';
+}
+function bisFromModal(monId, yearId) {
+  const m = document.getElementById(monId).value;
+  if (!m) return '';
+  const y = parseInt(document.getElementById(yearId).value);
+  return y + '-' + String(parseInt(m)).padStart(2, '0');
+}
+function fillBisFields(monId, yearId, item) {
+  const monEl = document.getElementById(monId), yEl = document.getElementById(yearId);
+  if (!monEl || !yEl) return;
+  const names = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+  monEl.innerHTML = '<option value="">Kein Enddatum</option>' + names.map((n, i) => '<option value="' + (i + 1) + '">' + n + '</option>').join('');
+  let yHtml = '';
+  for (let y = currentYear; y <= currentYear + 30; y++) yHtml += '<option value="' + y + '">' + y + '</option>';
+  yEl.innerHTML = yHtml;
+  if (item && item.bis) {
+    const p = String(item.bis).split('-');
+    const by = parseInt(p[0]);
+    if (by < currentYear) { yEl.insertAdjacentHTML('afterbegin', '<option value="' + by + '">' + by + '</option>'); }
+    monEl.value = String(parseInt(p[1]));
+    yEl.value = String(by);
+  } else {
+    monEl.value = '';
+    yEl.value = String(currentYear);
+  }
+  yEl.style.display = monEl.value ? '' : 'none';
+}
+function toggleBisYear(monId, yearId) {
+  document.getElementById(yearId).style.display = document.getElementById(monId).value ? '' : 'none';
+}
 function serienNewId() { return 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 function serienYears(kind) {
   const u = allData.users[currentUser];
@@ -7354,6 +7437,7 @@ function ensureSerienForYear(kind, year) {
   const out = [];
   Object.keys(latest).forEach(sid => {
     if (ende[sid] !== undefined && ende[sid] <= year) return;
+    if (latest[sid].bis && parseInt(String(latest[sid].bis).split('-')[0]) < year) return; // v4.18.0: Enddatum liegt vor diesem Jahr
     out.push(Object.assign({}, latest[sid]));
   });
   if (out.length) u[kind][year] = out;
@@ -7624,7 +7708,7 @@ function getSparkontenByCategory(catName) {
 function getFixkostenTotal() {
   ensureSerienForYear('fixkosten', currentYear);
   if (!allData.users[currentUser].fixkosten) allData.users[currentUser].fixkosten = {};
-  const fixkosten = serienList('fixkosten');
+  const fixkosten = serienActive('fixkosten');
   
   // v4.6.3: Tag-basiert statt hardcodierter SPAR_KATEGORIEN Liste
   let jahresausgaben = 0, monatsausgaben = 0;
@@ -7657,7 +7741,7 @@ function getFixkostenTotal() {
 function getSparkontenTotal() {
   ensureSerienForYear('sparkonten', currentYear);
   if (!allData.users[currentUser].sparkonten) allData.users[currentUser].sparkonten = {};
-  const sparkonten = serienList('sparkonten');
+  const sparkonten = serienActive('sparkonten');
   
   // v4.6.3: Tag-basiert statt hardcodierter SPAR_KATEGORIEN Liste
   let jahresausgaben = 0, monatsausgaben = 0;
@@ -7814,7 +7898,7 @@ function renderFixkosten() {
     });
     
     const totalItems = fixkosten.length;
-    const totalMonthly = fixkosten.reduce((sum, item) => {
+    const totalMonthly = fixkosten.filter(i => serieAktiv(i, currentYear, currentMonth)).reduce((sum, item) => {
       return sum + (item.type === 'jahresausgabe' ? item.betrag / 12 : item.betrag);
     }, 0);
     
@@ -7845,7 +7929,7 @@ function renderFixkosten() {
   
   sortedCategories.forEach(category => {
     const items = groupedByCategory[category];
-    const total = items.reduce((sum, item) => {
+    const total = items.filter(i => serieAktiv(i, currentYear, currentMonth)).reduce((sum, item) => {
       return sum + (item.type === 'jahresausgabe' ? item.betrag / 12 : item.betrag);
     }, 0);
     
@@ -7869,7 +7953,7 @@ function renderFixkosten() {
       htmlParts.push(`<div class="fixkosten-item" style="cursor: pointer; background: ${item.isStandard ? '#eff6ff' : '#f9fafb'}; border: 1px solid ${item.isStandard ? '#bfdbfe' : '#e5e7eb'}; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.75rem;" onclick="openFixkostenModal(${item.idx})">
         <div style="flex: 1; min-width: 150px;">
           <div style="font-size: 13px; font-weight: 600; color: #333;">${item.name}${standardBadge}</div>
-          <div style="font-size: 11px; color: #999; margin-top: 0.25rem;">${item.type === 'jahresausgabe' ? 'Jahresausgabe' : 'Monatsausgabe'}${serieBadgeHtml(item)}</div>
+          <div style="font-size: 11px; color: #999; margin-top: 0.25rem;">${item.type === 'jahresausgabe' ? 'Jahresausgabe' : 'Monatsausgabe'}${serieBadgeHtml(item)}${endeBadgeHtml(item)}</div>
         </div>
         <div style="text-align: right; min-width: 80px;">
           <div style="font-size: 13px; font-weight: 600; color: #3B82F6;">€${monthlyAmount}</div>
@@ -7966,7 +8050,7 @@ function renderSparkonten() {
     });
     
     const totalItems = sparkonten.length;
-    const totalMonthly = sparkonten.reduce((sum, item) => {
+    const totalMonthly = sparkonten.filter(i => serieAktiv(i, currentYear, currentMonth)).reduce((sum, item) => {
       return sum + (item.type === 'jahresausgabe' ? item.betrag / 12 : item.betrag);
     }, 0);
     
@@ -7997,7 +8081,7 @@ function renderSparkonten() {
   
   sortedCategories.forEach(category => {
     const items = groupedByCategory[category];
-    const total = items.reduce((sum, item) => {
+    const total = items.filter(i => serieAktiv(i, currentYear, currentMonth)).reduce((sum, item) => {
       return sum + (item.type === 'jahresausgabe' ? item.betrag / 12 : item.betrag);
     }, 0);
     
@@ -8035,7 +8119,7 @@ function renderSparkonten() {
       htmlParts.push(`<div class="fixkosten-item" style="cursor: pointer; background: #f0fdf4; border: 1px solid #86efac; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.75rem;" onclick="openSparkontenModal(${item.idx})">
         <div style="flex: 1; min-width: 150px;">
           <div style="font-size: 13px; font-weight: 600; color: #333;">${item.name}${sparenBadge}</div>
-          <div style="font-size: 11px; color: #999; margin-top: 0.25rem;">${item.type === 'jahresausgabe' ? 'Jahresausgabe' : 'Monatsausgabe'}${serieBadgeHtml(item)}</div>
+          <div style="font-size: 11px; color: #999; margin-top: 0.25rem;">${item.type === 'jahresausgabe' ? 'Jahresausgabe' : 'Monatsausgabe'}${serieBadgeHtml(item)}${endeBadgeHtml(item)}</div>
         </div>
         <div style="text-align: right; min-width: 80px;">
           <div style="font-size: 13px; font-weight: 600; color: #16a34a;">€${monthlyAmount}</div>
@@ -8140,7 +8224,7 @@ function openFixkostenModal(idx, isNew = false) {
     betragElem.value = item.betrag || '';
   }
   
-  { const _it = isNew ? null : serienList('fixkosten')[idx]; fillSerieScope('modalScope', 'modalScopeHint', serieScopeOptions(_it, isNew)); }
+  { const _it = isNew ? null : serienList('fixkosten')[idx]; fillSerieScope('modalScope', 'modalScopeHint', serieScopeOptions(_it, isNew)); fillBisFields('modalBisMonat', 'modalBisJahr', _it); }
     modal.classList.add('active');
   nameElem.focus();
 }
@@ -8182,7 +8266,7 @@ function openSparkontenModal(idx, isNew = false) {
     betragElem.value = item.betrag || '';
   }
   
-  { const _it = isNew ? null : serienList('sparkonten')[idx]; fillSerieScope('sparkontenModalScope', 'sparkontenModalScopeHint', serieScopeOptions(_it, isNew)); }
+  { const _it = isNew ? null : serienList('sparkonten')[idx]; fillSerieScope('sparkontenModalScope', 'sparkontenModalScopeHint', serieScopeOptions(_it, isNew)); fillBisFields('sparkontenBisMonat', 'sparkontenBisJahr', _it); }
     modal.classList.add('active');
   nameElem.focus();
 }
@@ -8245,7 +8329,7 @@ function saveFixkostenFromModal() {
   // Wenn idx === -1, dann NEUE Fixkosten (push), sonst UPDATE (array access)
   // v4.12.0: Gültigkeit (nur dieses Jahr / ab diesem Jahr / alle Jahre)
   const _scopeEl = document.getElementById('modalScope');
-  serienSaveItem('fixkosten', idx, { type: type, category: category, name: name, betrag: betrag }, _scopeEl ? _scopeEl.value : 'year');
+  serienSaveItem('fixkosten', idx, { type: type, category: category, name: name, betrag: betrag, bis: bisFromModal('modalBisMonat', 'modalBisJahr') }, _scopeEl ? _scopeEl.value : 'year');
   
   saveAllData();
   closeFixkostenModal();
@@ -8322,7 +8406,7 @@ function saveSparkontenFromModal() {
   // Wenn idx === -1, dann NEUE Sparkonten (push), sonst UPDATE (array access)
   // v4.12.0: Gültigkeit (nur dieses Jahr / ab diesem Jahr / alle Jahre)
   const _scopeEl = document.getElementById('sparkontenModalScope');
-  serienSaveItem('sparkonten', idx, { type: type, category: category, name: name, betrag: betrag }, _scopeEl ? _scopeEl.value : 'year');
+  serienSaveItem('sparkonten', idx, { type: type, category: category, name: name, betrag: betrag, bis: bisFromModal('sparkontenBisMonat', 'sparkontenBisJahr') }, _scopeEl ? _scopeEl.value : 'year');
   
   saveAllData();
   closeSparkontenModal();
@@ -8582,7 +8666,7 @@ function updateFixkostenMonthlyDisplay() {
   
   // v4.1.1 BUGFIX: Sammle tatsächliche Fixkosten-Kategorien statt BUDGET-Kategorien zu nutzen
   if (!allData.users[currentUser].fixkosten) allData.users[currentUser].fixkosten = {};
-  const fixkosten = serienList('fixkosten');
+  const fixkosten = serienActive('fixkosten');
   
   // Gruppiere nach tatsächlichen Kategorien UND nach Type
   const groupedByCategory = {};
@@ -8634,7 +8718,7 @@ function updateSparkontenMonthlyDisplay() {
   
   // v4.1.1 BUGFIX: Sammle tatsächliche Sparkonten-Kategorien statt BUDGET-Kategorien zu nutzen
   if (!allData.users[currentUser].sparkonten) allData.users[currentUser].sparkonten = {};
-  const sparkonten = serienList('sparkonten');
+  const sparkonten = serienActive('sparkonten');
   
   // Gruppiere nach tatsächlichen Kategorien UND nach Type
   const groupedByCategory = {};
@@ -9589,7 +9673,7 @@ function executeDeleteAllSparkonten(year) {
 // v4.8.3: DATEN-EXPORT / -IMPORT (JSON)
 // ============================================================
 const BACKUP_APP_NAME = 'Gehaltsplaner Pro';
-const BACKUP_APP_VERSION = '4.17.2';
+const BACKUP_APP_VERSION = '4.18.0';
 
 // Meldung nach dem Schließen des Menüs zeigen (alert() wird von offenen Modals blockiert)
 function dataBackupAlert(message) {
