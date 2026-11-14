@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Gehaltsplaner CB">
   <meta name="theme-color" content="#3B82F6">
-  <title>Gehaltsplaner Pro v4.13.0 - Option A (Option A: Tab-Lokalisiert)</title>
+  <title>Gehaltsplaner Pro v4.14.0 - Option A (Option A: Tab-Lokalisiert)</title>
   <script>
     // Async load Chart.js with fallback
     const script = document.createElement('script');
@@ -1115,7 +1115,11 @@ small { font-size: 12px; color: #999; }
           <p style="font-size: 12px; color: #166534; margin: 0 0 0.25rem 0;">Angemeldet als</p>
           <p style="font-size: 14px; font-weight: 700; color: #166534; margin: 0; word-break: break-all;" id="cloudViewEmail"></p>
         </div>
-        <p style="font-size: 12px; color: #666; line-height: 1.5; margin: 0 0 1rem 0;">Deine Daten bleiben vorerst nur auf diesem Gerät. Die Synchronisierung zwischen Geräten kommt in einer der nächsten Versionen.</p>
+        <p style="font-size: 12px; color: #666; line-height: 1.5; margin: 0 0 1rem 0;">Deine Daten bleiben vorerst nur auf diesem Gerät. Die Synchronisierung zwischen Geräten kommt in einer der nächsten Versionen. Mit dem Button unten prüfst du, ob die Cloud-Datenbank erreichbar und für dein Konto freigeschaltet ist.</p>
+        <div style="margin-bottom: 1rem;">
+          <button onclick="cloudCheckConnection()" class="btn-primary" style="width: 100%; padding: 0.5rem; font-size: 12px;" id="cloudCheckBtn">🔍 Cloud-Verbindung prüfen</button>
+          <p id="cloudCheckResult" style="font-size: 12px; line-height: 1.5; margin: 0.5rem 0 0 0; min-height: 1em;"></p>
+        </div>
         <div class="fixkosten-modal-actions">
           <button class="fixkosten-modal-btn-save" style="background: #EF4444;" onclick="cloudSignOutClick()">Abmelden</button>
           <button class="fixkosten-modal-btn-cancel" onclick="closeCloudModal()">Schließen</button>
@@ -1231,7 +1235,7 @@ small { font-size: 12px; color: #999; }
         <p>Jahresplanung & Budgetierung deines Einkommens</p>
       </div>
       <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
-        <div class="version">v4.13.0</div>
+        <div class="version">v4.14.0</div>
         <div style="font-size: 10px; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.5px;">🔒 CLOSED BETA</div>
       </div>
     </div>
@@ -1812,9 +1816,20 @@ small { font-size: 12px; color: #999; }
         </p>
       </div>
 
-      <!-- v4.13.0: FEATURE - CLOUD-KONTO (LOGIN) -->
+      <!-- v4.14.0: FEATURE - CLOUD-DATENBANK VORBEREITET -->
       <div class="settings-card" style="background: #f0fdf4; border-color: #86efac; border-width: 3px;">
-        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">✨ v4.13.0 - Feature: Cloud-Konto Login (aktuell)</p>
+        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">✨ v4.14.0 - Feature: Cloud-Datenbank vorbereitet (aktuell)</p>
+        <p style="font-size: 12px; color: #15803d; line-height: 1.6; margin: 0;">
+          ✅ <strong>Neue Tabelle "app_data"</strong> in Supabase (per SQL-Skript): pro Konto eine Zeile für das Datenpaket der App, mit Sicherheitsregeln (Row Level Security): jedes Konto sieht und ändert nur seine eigene Zeile, anonym ist nichts erlaubt.<br>
+          ✅ <strong>Button "🔍 Cloud-Verbindung prüfen"</strong> im Cloud-Konto: testet, ob die Tabelle erreichbar und für dein Konto freigeschaltet ist.<br>
+          ℹ️ <strong>Noch kein Datenupload:</strong> Es werden keine Budgetdaten in die Cloud übertragen. Das folgt in v4.15.0.<br>
+          🧪 <strong>Was testen:</strong> SQL-Skript ausführen → ☰ → Cloud-Konto → "Verbindung prüfen" zeigt "✓ Cloud erreichbar" · Vorher (ohne Skript) zeigt er "Tabelle fehlt"
+        </p>
+      </div>
+
+      <!-- v4.13.0: FEATURE - CLOUD-KONTO (LOGIN) -->
+      <div class="settings-card" style="background: #f0fdf4; border-color: #86efac;">
+        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">✨ v4.13.0 - Feature: Cloud-Konto Login</p>
         <p style="font-size: 12px; color: #15803d; line-height: 1.6; margin: 0;">
           ✅ <strong>Neuer Bereich "☁️ Cloud-Konto"</strong> im Benutzermenü (☰): Registrieren, Anmelden, Abmelden mit E-Mail und Passwort (Supabase, Server in Frankfurt).<br>
           ✅ <strong>Registrierung</strong> verlangt mindestens 10 Zeichen und eine Bestätigung per E-Mail-Link. Danach bleibt die Anmeldung auf dem Gerät erhalten.<br>
@@ -6614,6 +6629,24 @@ async function cloudHandleRedirect() {
   renderCloudUi();
   showSuccessMessage('E-Mail bestätigt. Du bist angemeldet.');
 }
+async function cloudCheckConnection() {
+  const out = document.getElementById('cloudCheckResult');
+  const btn = document.getElementById('cloudCheckBtn');
+  const set = (t, err) => { out.textContent = t; out.style.color = err ? '#b91c1c' : '#166534'; };
+  await cloudRefreshIfNeeded();
+  const s = cloudLoadSession();
+  if (!s) { set('Du bist nicht angemeldet. Bitte neu anmelden.', true); return; }
+  btn.disabled = true; set('Prüfe …', false);
+  const res = await cloudApi('/rest/v1/app_data?select=user_id,updated_at', 'GET', null, s.access_token);
+  btn.disabled = false;
+  if (res.network) { set('Keine Verbindung zum Cloud-Server. Bitte Internet prüfen.', true); return; }
+  const code = String((res.data && (res.data.code || res.data.error_code)) || '');
+  if (res.status === 404 || code === 'PGRST205' || code === '42P01') { set('Verbindung steht, aber die Tabelle "app_data" fehlt. Das SQL-Skript wurde noch nicht in Supabase ausgeführt.', true); return; }
+  if (res.status === 401 || res.status === 403) { set('Zugriff verweigert (' + res.status + '). Bitte ab- und wieder anmelden.', true); return; }
+  if (!res.ok || !Array.isArray(res.data)) { set('Unerwartete Antwort (' + res.status + ').', true); return; }
+  if (res.data.length === 0) set('✓ Cloud erreichbar, Tabelle für dein Konto freigeschaltet. Es liegen noch keine Daten in der Cloud (das ist jetzt richtig).', false);
+  else set('✓ Cloud erreichbar. Letzter Stand in der Cloud: ' + new Date(res.data[0].updated_at).toLocaleString('de-DE') + '.', false);
+}
 function renderCloudUi() {
   const s = cloudLoadSession();
   const status = document.getElementById('cloudMenuStatus');
@@ -6655,7 +6688,7 @@ function openCloudModal() {
   const s = cloudLoadSession();
   document.getElementById('cloudViewIn').style.display = s ? 'block' : 'none';
   document.getElementById('cloudViewOut').style.display = s ? 'none' : 'block';
-  if (s) document.getElementById('cloudViewEmail').textContent = s.email || '';
+  if (s) { document.getElementById('cloudViewEmail').textContent = s.email || ''; document.getElementById('cloudCheckResult').textContent = ''; }
   else { setCloudMode('login'); document.getElementById('cloudPassword').value = ''; }
   document.getElementById('cloudModal').classList.add('active');
 }
@@ -8961,7 +8994,7 @@ function executeDeleteAllSparkonten(year) {
 // v4.8.3: DATEN-EXPORT / -IMPORT (JSON)
 // ============================================================
 const BACKUP_APP_NAME = 'Gehaltsplaner Pro';
-const BACKUP_APP_VERSION = '4.13.0';
+const BACKUP_APP_VERSION = '4.14.0';
 
 // Meldung nach dem Schließen des Menüs zeigen (alert() wird von offenen Modals blockiert)
 function dataBackupAlert(message) {
