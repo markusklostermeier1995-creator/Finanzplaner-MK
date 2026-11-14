@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Gehaltsplaner CB">
   <meta name="theme-color" content="#3B82F6">
-  <title>Gehaltsplaner Pro v4.21.0.2 - Option A (Option A: Tab-Lokalisiert)</title>
+  <title>Gehaltsplaner Pro v4.22.0 - Option A (Option A: Tab-Lokalisiert)</title>
   <script>
     // Async load Chart.js with fallback
     const script = document.createElement('script');
@@ -35,6 +35,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; c
 .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: #3B82F6; color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; flex-shrink: 0; font-size: 14px; }
 .user-select { padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; background: white; }
 .user-name { font-size: 14px; font-weight: 600; color: #333; white-space: nowrap; }
+.empty-hint { background: #eff6ff; border: 1px solid #93c5fd; color: #1e40af; border-radius: 8px; padding: 0.75rem; margin-bottom: 1rem; font-size: 12px; line-height: 1.5; }
+.empty-hint-title { font-weight: 700; margin-bottom: 0.5rem; }
+.empty-hint-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.empty-hint-actions button { padding: 8px 12px; font-size: 12px; }
 .btn-group { display: flex; gap: 6px; margin-left: auto; flex-wrap: wrap; align-items: center; }
 button { padding: 6px 10px; font-size: 12px; font-weight: 500; border: 1px solid #ddd; background: #f0f0f0; border-radius: 4px; cursor: pointer; -webkit-appearance: none; white-space: nowrap; }
 button:active { opacity: 0.7; }
@@ -1250,7 +1254,10 @@ small { font-size: 12px; color: #999; }
   }
 }
 
-  </style>
+  @media (prefers-color-scheme: dark) {
+  .empty-hint { background-color: #182e3f !important; border-color: #3b5f85 !important; color: #bcd4f5 !important; }
+}
+</style>
 </head>
 <body>
 
@@ -1491,7 +1498,7 @@ small { font-size: 12px; color: #999; }
         <p>Jahresplanung & Budgetierung deines Einkommens</p>
       </div>
       <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
-        <div class="version">v4.21.0.2</div>
+        <div class="version">v4.22.0</div>
         <div style="font-size: 10px; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.5px;">🔒 CLOSED BETA</div>
       </div>
     </div>
@@ -1571,14 +1578,16 @@ small { font-size: 12px; color: #999; }
         <div class="kpi" id="saldoKpi"><div class="kpi-label">Saldo</div><div class="kpi-value" id="saldo">€0</div></div>
       </div>
 
+      <!-- v4.22.0: HINWEIS BEI LEEREM MONAT (ersetzt den Kopieren-Button) -->
+      <div id="emptyMonthHint" class="empty-hint" style="display: none;"></div>
+
       <!-- BUDGET KATEGORIEN -->
       <div id="categoriesContainer" style="margin-bottom: 1.5rem;"></div>
 
       <p style="font-size: 11px; color: #999; text-align: center; margin: 0 0 0.75rem 0;">✓ Änderungen werden automatisch gespeichert</p>
 
-      <!-- COPY / DELETE BUTTONS (v4.21.0: Speichern entfaellt) -->
+      <!-- DELETE BUTTON (v4.21.0: Speichern entfaellt, v4.22.0: Kopieren ersetzt durch Hinweis bei leerem Monat) -->
       <div class="btn-group">
-        <button onclick="openBudgetCopyModal()" class="btn-primary" style="background: #8B5CF6; border-color: #8B5CF6;">📋 Kopieren</button>
         <button onclick="showDeleteWarning()" class="btn-danger">🗑️ Löschen</button>
       </div>
     </div>
@@ -2057,9 +2066,22 @@ small { font-size: 12px; color: #999; }
         </p>
       </div>
 
+      <!-- v4.22.0: FEATURE - KOPIEREN ALS HINWEIS BEI LEEREM MONAT -->
+      <div class="settings-card" style="background: #f0fdf4; border-color: #86efac; border-width: 3px;">
+        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">📋 v4.22.0 - Feature: Beträge aus dem Vormonat übernehmen (aktuell)</p>
+        <p style="font-size: 12px; color: #15803d; line-height: 1.6; margin: 0;">
+          <strong>Neu:</strong> Ist ein Monat noch leer, steht über den Kategorien ein Hinweis: "Noch keine Beträge für November 2026" mit dem Button "Aus Oktober 2026 übernehmen" und "Anderen Monat wählen …". Ein Tipp übernimmt die Beträge des Vormonats (über den Jahreswechsel auch Dezember → Januar).<br>
+          <strong>Anderer Monat:</strong> "Anderen Monat wählen …" öffnet das bekannte Fenster mit Monat, Jahr und der Option, das Einkommen mitzukopieren. Als Vorgabe steht jetzt der Vormonat.<br>
+          <strong>Hinweis verschwindet</strong>, sobald im Monat ein Betrag steht. Er erscheint nicht bei neuen Benutzern ohne irgendwelche Beträge und nicht, wenn es nichts zu übernehmen gibt. Fixkosten und Sparkonten zählen nicht als "Beträge", sie kommen immer automatisch.<br>
+          <strong>Entfernt:</strong> Der feste Button "Kopieren" unten. Soll ein gefüllter Monat neu befüllt werden, zuerst "Löschen", dann erscheint der Hinweis wieder.<br>
+          <strong>Dazu:</strong> Die Rückfrage "Monat enthält bereits Einträge" erscheint nur noch bei echten Beträgen (nicht wegen automatisch gespeicherter Fixkosten). Eine eigene Einkommen-Abweichung des Zielmonats bleibt beim Kopieren ohne Einkommen erhalten.<br>
+          <strong>Was testen:</strong> Einen leeren Monat nach einem gefüllten wählen: Hinweis, Button tippen, Beträge sind da. Januar nach Dezember. "Anderen Monat wählen …". Einen Betrag eintippen: Hinweis verschwindet. Löschen: Hinweis kommt wieder. Dunkelmodus ansehen.
+        </p>
+      </div>
+
       <!-- v4.21.0.2: UI - DUNKELMODUS LESBAR -->
-      <div class="settings-card" style="background: #fff7ed; border-color: #fed7aa; border-width: 3px;">
-        <p style="font-size: 13px; font-weight: 700; color: #9a3412; margin-bottom: 0.5rem;">🌙 v4.21.0.2 - UI: Dunkelmodus lesbar (aktuell)</p>
+      <div class="settings-card" style="background: #fff7ed; border-color: #fed7aa;">
+        <p style="font-size: 13px; font-weight: 700; color: #9a3412; margin-bottom: 0.5rem;">🌙 v4.21.0.2 - UI: Dunkelmodus lesbar</p>
         <p style="font-size: 12px; color: #c2410c; line-height: 1.6; margin: 0;">
           <strong>Problem:</strong> Im Dunkelmodus (iPhone/Mac) standen helle Schrift auf hellen Flächen und dunkle Schrift auf dunklen Flächen: Kacheln mit Einkommen, Ausgaben und Saldo, Fixkosten- und Sparkonten-Tab, Kategorien, Fenster und Release Notes waren zum Teil nicht zu lesen.<br>
           <strong>Neu:</strong> Alle hellen Flächen werden im Dunkelmodus abgedunkelt, dunkle Schriften aufgehellt und Rahmen abgeschwächt. Die Farbzuordnung bleibt: Release-Notes-Karten sind weiter grün, rot, orange oder gelb (nur getönt), Saldo zeigt grün bzw. rot. Grüne und blaue Buttons haben jetzt genug Kontrast zur weißen Schrift.<br>
@@ -6874,6 +6896,7 @@ function renderInputs() {
     }
   }, 10);
   inputsDirty = false; // v4.7.3: DOM ist jetzt aktuell
+  updateEmptyMonthHint();   // v4.22.0
   } catch (e) {
     console.error('renderInputs error:', e);
     // Show error message
@@ -9428,10 +9451,48 @@ function saveMonth() {
   saveAllData();
 }
 
+// v4.22.0: Hinweis bei leerem Monat ("Aus Vormonat uebernehmen")
+// "Leer" = kein selbst eingetragener Betrag (>0) bei den Posten der Kategorien. Fixkosten/Sparkonten zaehlen nicht mit,
+// weil sie automatisch aus ihren Eintraegen kommen.
+function monthHasManualAmounts(year, monthIdx) {
+  const u = allData.users[currentUser];
+  const md = ((u.data[year] || {})[MONTHS[monthIdx]]) || null;
+  if (!md) return false;
+  return getKategorien().some(kat => kat.posten.some(p => md[kat.name] && parseFloat(md[kat.name][p.name]) > 0));
+}
+function prevMonthOf(year, monthIdx) {
+  return monthIdx === 0 ? { year: year - 1, month: 11 } : { year: year, month: monthIdx - 1 };
+}
+function anyOtherMonthHasAmounts() {
+  const u = allData.users[currentUser];
+  return Object.keys(u.data || {}).some(y => MONTHS.some((m, i) => !(parseInt(y) === currentYear && i === currentMonth) && monthHasManualAmounts(parseInt(y), i)));
+}
+function updateEmptyMonthHint() {
+  const box = document.getElementById('emptyMonthHint');
+  if (!box) return;
+  try {
+    const hasPosten = getKategorien().some(k => k.posten.length > 0);
+    if (!hasPosten || monthHasManualAmounts(currentYear, currentMonth) || !anyOtherMonthHasAmounts()) { box.style.display = 'none'; return; }
+    const prev = prevMonthOf(currentYear, currentMonth);
+    const prevOk = monthHasManualAmounts(prev.year, prev.month);
+    let html = '<div class="empty-hint-title">Noch keine Beträge für ' + MONTHS[currentMonth] + ' ' + currentYear + '</div><div class="empty-hint-actions">';
+    if (prevOk) html += '<button type="button" class="btn-primary" onclick="copyFromPreviousMonth()">📋 Aus ' + MONTHS[prev.month] + ' ' + prev.year + ' übernehmen</button>';
+    html += '<button type="button" onclick="openBudgetCopyModal()">Anderen Monat wählen …</button></div>';
+    box.innerHTML = html;
+    box.style.display = 'block';
+  } catch (e) { console.warn('updateEmptyMonthHint:', e); box.style.display = 'none'; }
+}
+function copyFromPreviousMonth() {
+  const prev = prevMonthOf(currentYear, currentMonth);
+  budgetCopyPending = { sourceMonth: prev.month, sourceYear: prev.year, copyIncome: false };
+  performBudgetCopy();
+}
+
 // v4.21.0: Jede Aenderung eines Betrags wird sofort uebernommen (synchron, damit ein Monatswechsel nichts verliert)
 function onBudgetInputChange() {
   saveMonth();
   debouncedUpdateSummary();
+  updateEmptyMonthHint();
 }
 
 // ============================================================
@@ -9445,7 +9506,8 @@ function openBudgetCopyModal() {
   document.getElementById('budgetCopyTarget').textContent = targetLabel;
 
   // Quelle-Monat Default = aktueller Monat
-  document.getElementById('budgetCopySourceMonth').value = currentMonth;
+  const prevM = prevMonthOf(currentYear, currentMonth);   // v4.22.0: Vorgabe = Vormonat
+  document.getElementById('budgetCopySourceMonth').value = prevM.month;
 
   // Quelle-Jahr Dropdown befüllen (3 Jahre zurück + 3 voraus)
   const yearSelect = document.getElementById('budgetCopySourceYear');
@@ -9454,7 +9516,7 @@ function openBudgetCopyModal() {
     const opt = document.createElement('option');
     opt.value = y;
     opt.textContent = y;
-    if (y === currentYear) opt.selected = true;
+    if (y === prevM.year) opt.selected = true;
     yearSelect.appendChild(opt);
   }
 
@@ -9483,7 +9545,7 @@ function executeBudgetCopy() {
   // Ziel = aktueller Monat/Jahr (fix)
   const targetMonthKey = MONTHS[currentMonth];
   const targetData = allData.users[currentUser].data[currentYear]?.[targetMonthKey];
-  const hasData = targetData && Object.keys(targetData).filter(k => k !== 'monthlyIncome').length > 0;
+  const hasData = monthHasManualAmounts(currentYear, currentMonth);   // v4.22.0: nur echte Betraege zaehlen
 
   // Kopier-Daten zwischenspeichern
   budgetCopyPending = { sourceMonth, sourceYear, copyIncome };
@@ -9529,6 +9591,8 @@ function performBudgetCopy() {
 
   // Gehalt ggf. entfernen
   if (!copyIncome) delete copyData.monthlyIncome;
+  const prevTarget = (allData.users[currentUser].data[currentYear] || {})[MONTHS[currentMonth]];   // v4.22.0
+  if (!copyIncome && prevTarget && prevTarget.monthlyIncome > 0) copyData.monthlyIncome = prevTarget.monthlyIncome;
 
   // In Zielmonat schreiben (aktueller Monat/Jahr = fix)
   const targetMonthKey = MONTHS[currentMonth];
