@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Gehaltsplaner CB">
   <meta name="theme-color" content="#3B82F6">
-  <title>Gehaltsplaner Pro v4.21.0.1 - Option A (Option A: Tab-Lokalisiert)</title>
+  <title>Gehaltsplaner Pro v4.21.0.2 - Option A (Option A: Tab-Lokalisiert)</title>
   <script>
     // Async load Chart.js with fallback
     const script = document.createElement('script');
@@ -920,6 +920,164 @@ small { font-size: 12px; color: #999; }
   }
 }
 
+/* ===== v4.21.0.2: DARK MODE - einheitliche Flaechen/Textfarben (erzeugt aus den vorhandenen Farben) ===== */
+@media (prefers-color-scheme: dark) {
+  /* Klassen aus dem Stylesheet */
+  .top-bar { background: #303030 !important; border-color: #444 !important; }
+  .user-select { background: #2a2a2a !important; border-color: #444 !important; }
+  .user-name { color: #e6e6e6 !important; }
+  .top-bar { background: #303030 !important; border-color: #444 !important; }
+  .header p { color: #bdbdbd !important; }
+  .selector-label { color: #bdbdbd !important; }
+  .tabs { border-color: #444 !important; }
+  .tab-btn { color: #bdbdbd !important; }
+  .tab-btn.active { color: #e6e6e6 !important; }
+  .income-box { background: #2a2a2a !important; border-color: #444 !important; }
+  .kpi { background: #2a2a2a !important; border-color: #444 !important; }
+  .category-section { background: #2a2a2a !important; border-color: #444 !important; }
+  .category-header { color: #e6e6e6 !important; }
+  .subcategory-box { background: #2a2a2a !important; border-color: #444 !important; }
+  .subcat-label { color: #bdbdbd !important; }
+  .serie-badge { background: #183f25 !important; color: #a3ebbe !important; }
+  .serie-badge.ov { background: #3f3718 !important; color: #f5bc99 !important; }
+  .serie-scope-box { background: #183f24 !important; }
+  .serie-scope-hint { color: #a3ebbe !important; }
+  input[type="number"], input[type="text"] { border-color: #444 !important; }
+  .user-card { background: #2a2a2a !important; border-color: #444 !important; }
+  .user-card-name { color: #e6e6e6 !important; }
+  .user-card-data { color: #bdbdbd !important; }
+  .chart-fullscreen-modal { background: #2a2a2a !important; }
+  .chart-fullscreen-header { border-color: #444 !important; }
+  .modal-title { color: #e6e6e6 !important; }
+  .modal-input label { color: #bdbdbd !important; }
+  .settings-card { background: #2a2a2a !important; border-color: #444 !important; }
+  .settings-label { color: #e6e6e6 !important; }
+  .fixkosten-item { background: #2a2a2a !important; border-color: #444 !important; }
+  .accordion-header { background: #2a2a2a !important; color: #e6e6e6 !important; border-color: #444 !important; }
+  .accordion-header:hover { background: #303030 !important; }
+  .accordion-header.active { background: #182e3f !important; }
+  .accordion-content { background: #2a2a2a !important; border-color: #444 !important; }
+  .accordion-summary { color: #bdbdbd !important; }
+  .fixkosten-modal { background: #2a2a2a !important; }
+  .fixkosten-modal-header { color: #e6e6e6 !important; }
+  .fixkosten-modal-close:hover { color: #e6e6e6 !important; }
+  .fixkosten-modal-label { color: #e6e6e6 !important; }
+  .sparkonten-modal { background: #2a2a2a !important; }
+  .sparkonten-modal-close:hover { color: #e6e6e6 !important; background: #303030 !important; }
+  .sparkonten-modal-label { color: #e6e6e6 !important; }
+  .sparkonten-modal-field input, .sparkonten-modal-field select { border-color: #444 !important; }
+  .sparkonten-modal-btn-cancel { background: #303030 !important; color: #e6e6e6 !important; }
+  .sparkonten-modal-btn-cancel:hover { background: #303030 !important; }
+  .fixkosten-modal-label { color: #e6e6e6 !important; }
+  .fixkosten-modal-field input, .fixkosten-modal-field select { border-color: #444 !important; }
+  .fixkosten-modal-btn-cancel { background: #252932 !important; color: #e6e6e6 !important; }
+  .fixkosten-modal-btn-cancel:hover { background: #262931 !important; }
+  .fixkosten-section-content { background: #232b34 !important; border-color: #444 !important; }
+  .settings-card-optimized { background: #232b34 !important; border-color: #444 !important; }
+  .period-arrow { background: #182f3f !important; color: #9fb2ef !important; }
+  .period-arrow:active { background: #18293f !important; }
+  .period-select { background: #2a2a2a !important; color: #abc0e3 !important; }
+  .income-section { background: #182f3f !important; }
+  .income-section h3 { color: #9fb2ef !important; }
+  .schritt-card { background: #182f3f !important; }
+  .schritt-label { color: #9fb2ef !important; }
+  .schritt-select, .schritt-input { background: #2a2a2a !important; color: #abc0e3 !important; }
+  /* Inline-Farben (Fixkosten, Release Notes, Fenster) */
+  html body [style*="solid #d1d5db"], html body [style*="solid #D1D5DB"] { border-color: #444 !important; }
+  html body [style*="solid #ddd"], html body [style*="solid #DDD"] { border-color: #444 !important; }
+  html body [style*="solid #e0e0e0"], html body [style*="solid #E0E0E0"] { border-color: #444 !important; }
+  html body [style*="solid #e5e7eb"], html body [style*="solid #E5E7EB"] { border-color: #444 !important; }
+  html body [style*="solid #f3f4f6"], html body [style*="solid #F3F4F6"] { border-color: #444 !important; }
+  html body [style*="background: #bbf7d0;"], html body [style$="background: #bbf7d0"], html body [style*="background:#bbf7d0;"], html body [style$="background:#bbf7d0"] { background-color: #183f25 !important; }
+  html body [style*="background: #bfdbfe;"], html body [style$="background: #bfdbfe"], html body [style*="background:#bfdbfe;"], html body [style$="background:#bfdbfe"] { background-color: #18293f !important; }
+  html body [style*="background: #d1fae5;"], html body [style$="background: #d1fae5"], html body [style*="background:#d1fae5;"], html body [style$="background:#d1fae5"] { background-color: #183f2b !important; }
+  html body [style*="background: #dbeafe;"], html body [style$="background: #dbeafe"], html body [style*="background:#dbeafe;"], html body [style$="background:#dbeafe"] { background-color: #18293f !important; }
+  html body [style*="background: #dcfce7;"], html body [style$="background: #dcfce7"], html body [style*="background:#dcfce7;"], html body [style$="background:#dcfce7"] { background-color: #183f25 !important; }
+  html body [style*="background: #e0f2fe;"], html body [style$="background: #e0f2fe"], html body [style*="background:#e0f2fe;"], html body [style$="background:#e0f2fe"] { background-color: #182f3f !important; }
+  html body [style*="background: #e5e7eb;"], html body [style$="background: #e5e7eb"], html body [style*="background:#e5e7eb;"], html body [style$="background:#e5e7eb"] { background-color: #262931 !important; }
+  html body [style*="background: #efefef;"], html body [style$="background: #efefef"], html body [style*="background:#efefef;"], html body [style$="background:#efefef"] { background-color: #303030 !important; }
+  html body [style*="background: #eff6ff;"], html body [style$="background: #eff6ff"], html body [style*="background:#eff6ff;"], html body [style$="background:#eff6ff"] { background-color: #18293f !important; }
+  html body [style*="background: #f0f0f0;"], html body [style$="background: #f0f0f0"], html body [style*="background:#f0f0f0;"], html body [style$="background:#f0f0f0"] { background-color: #303030 !important; }
+  html body [style*="background: #f0f7ff;"], html body [style$="background: #f0f7ff"], html body [style*="background:#f0f7ff;"], html body [style$="background:#f0f7ff"] { background-color: #182a3f !important; }
+  html body [style*="background: #f0f9ff;"], html body [style$="background: #f0f9ff"], html body [style*="background:#f0f9ff;"], html body [style$="background:#f0f9ff"] { background-color: #182f3f !important; }
+  html body [style*="background: #f0fdf4;"], html body [style$="background: #f0fdf4"], html body [style*="background:#f0fdf4;"], html body [style$="background:#f0fdf4"] { background-color: #183f24 !important; }
+  html body [style*="background: #f3f4f6;"], html body [style$="background: #f3f4f6"], html body [style*="background:#f3f4f6;"], html body [style$="background:#f3f4f6"] { background-color: #252932 !important; }
+  html body [style*="background: #f8f9fa;"], html body [style$="background: #f8f9fa"], html body [style*="background:#f8f9fa;"], html body [style$="background:#f8f9fa"] { background-color: #242b33 !important; }
+  html body [style*="background: #f9f9f9;"], html body [style$="background: #f9f9f9"], html body [style*="background:#f9f9f9;"], html body [style$="background:#f9f9f9"] { background-color: #2a2a2a !important; }
+  html body [style*="background: #f9fafb;"], html body [style$="background: #f9fafb"], html body [style*="background:#f9fafb;"], html body [style$="background:#f9fafb"] { background-color: #232b34 !important; }
+  html body [style*="background: #fee2e2;"], html body [style$="background: #fee2e2"], html body [style*="background:#fee2e2;"], html body [style$="background:#fee2e2"] { background-color: #3f1818 !important; }
+  html body [style*="background: #fef2f2;"], html body [style$="background: #fef2f2"], html body [style*="background:#fef2f2;"], html body [style$="background:#fef2f2"] { background-color: #3f1818 !important; }
+  html body [style*="background: #fef3c7;"], html body [style$="background: #fef3c7"], html body [style*="background:#fef3c7;"], html body [style$="background:#fef3c7"] { background-color: #3f3718 !important; }
+  html body [style*="background: #fef9c3;"], html body [style$="background: #fef9c3"], html body [style*="background:#fef9c3;"], html body [style$="background:#fef9c3"] { background-color: #3f3c18 !important; }
+  html body [style*="background: #fefce8;"], html body [style$="background: #fefce8"], html body [style*="background:#fefce8;"], html body [style$="background:#fefce8"] { background-color: #3f3b18 !important; }
+  html body [style*="background: #fff7ed;"], html body [style$="background: #fff7ed"], html body [style*="background:#fff7ed;"], html body [style$="background:#fff7ed"] { background-color: #3f2e18 !important; }
+  html body [style*="background: white;"], html body [style$="background: white"], html body [style*="background:white;"], html body [style$="background:white"] { background-color: #2a2a2a !important; }
+  html body [style*=" color: #047857;"], html body [style^="color: #047857"], html body [style*=";color: #047857"], html body [style$=" color: #047857"], html body [style*=" color:#047857;"], html body [style^="color:#047857"], html body [style*=";color:#047857"], html body [style$=" color:#047857"] { color: #97f7db !important; }
+  html body [style*=" color: #059669;"], html body [style^="color: #059669"], html body [style*=";color: #059669"], html body [style$=" color: #059669"], html body [style*=" color:#059669;"], html body [style^="color:#059669"], html body [style*=";color:#059669"], html body [style$=" color:#059669"] { color: #97f7d9 !important; }
+  html body [style*=" color: #065f46;"], html body [style^="color: #065f46"], html body [style*=";color: #065f46"], html body [style$=" color: #065f46"], html body [style*=" color:#065f46;"], html body [style^="color:#065f46"], html body [style*=";color:#065f46"], html body [style$=" color:#065f46"] { color: #97f7dc !important; }
+  html body [style*=" color: #06b6d4;"], html body [style^="color: #06b6d4"], html body [style*=";color: #06b6d4"], html body [style$=" color: #06b6d4"], html body [style*=" color:#06b6d4;"], html body [style^="color:#06b6d4"], html body [style*=";color:#06b6d4"], html body [style$=" color:#06b6d4"] { color: #97e9f7 !important; }
+  html body [style*=" color: #075985;"], html body [style^="color: #075985"], html body [style*=";color: #075985"], html body [style$=" color: #075985"], html body [style*=" color:#075985;"], html body [style^="color:#075985"], html body [style*=";color:#075985"], html body [style$=" color:#075985"] { color: #97d5f7 !important; }
+  html body [style*=" color: #0d9488;"], html body [style^="color: #0d9488"], html body [style*=";color: #0d9488"], html body [style$=" color: #0d9488"], html body [style*=" color:#0d9488;"], html body [style^="color:#0d9488"], html body [style*=";color:#0d9488"], html body [style$=" color:#0d9488"] { color: #98f6ee !important; }
+  html body [style*=" color: #10b981;"], html body [style^="color: #10b981"], html body [style*=";color: #10b981"], html body [style$=" color: #10b981"], html body [style*=" color:#10b981;"], html body [style^="color:#10b981"], html body [style*=";color:#10b981"], html body [style$=" color:#10b981"] { color: #98f6d7 !important; }
+  html body [style*=" color: #111827;"], html body [style^="color: #111827"], html body [style*=";color: #111827"], html body [style$=" color: #111827"], html body [style*=" color:#111827;"], html body [style^="color:#111827"], html body [style*=";color:#111827"], html body [style$=" color:#111827"] { color: #abbde3 !important; }
+  html body [style*=" color: #14532d;"], html body [style^="color: #14532d"], html body [style*=";color: #14532d"], html body [style$=" color: #14532d"], html body [style*=" color:#14532d;"], html body [style^="color:#14532d"], html body [style*=";color:#14532d"], html body [style$=" color:#14532d"] { color: #a5e9c0 !important; }
+  html body [style*=" color: #14b8a6;"], html body [style^="color: #14b8a6"], html body [style*=";color: #14b8a6"], html body [style$=" color: #14b8a6"], html body [style*=" color:#14b8a6;"], html body [style^="color:#14b8a6"], html body [style*=";color:#14b8a6"], html body [style$=" color:#14b8a6"] { color: #9af4ea !important; }
+  html body [style*=" color: #15803d;"], html body [style^="color: #15803d"], html body [style*=";color: #15803d"], html body [style$=" color: #15803d"], html body [style*=" color:#15803d;"], html body [style^="color:#15803d"], html body [style*=";color:#15803d"], html body [style$=" color:#15803d"] { color: #9fefbd !important; }
+  html body [style*=" color: #166534;"], html body [style^="color: #166534"], html body [style*=";color: #166534"], html body [style$=" color: #166534"], html body [style*=" color:#166534;"], html body [style^="color:#166534"], html body [style*=";color:#166534"], html body [style$=" color:#166534"] { color: #a3ebbe !important; }
+  html body [style*=" color: #16a34a;"], html body [style^="color: #16a34a"], html body [style*=";color: #16a34a"], html body [style$=" color: #16a34a"], html body [style*=" color:#16a34a;"], html body [style^="color:#16a34a"], html body [style*=";color:#16a34a"], html body [style$=" color:#16a34a"] { color: #9cf2bc !important; }
+  html body [style*=" color: #1d4ed8;"], html body [style^="color: #1d4ed8"], html body [style*=";color: #1d4ed8"], html body [style$=" color: #1d4ed8"], html body [style*=" color:#1d4ed8;"], html body [style^="color:#1d4ed8"], html body [style*=";color:#1d4ed8"], html body [style$=" color:#1d4ed8"] { color: #9cb3f2 !important; }
+  html body [style*=" color: #1e3a8a;"], html body [style^="color: #1e3a8a"], html body [style*=";color: #1e3a8a"], html body [style$=" color: #1e3a8a"], html body [style*=" color:#1e3a8a;"], html body [style^="color:#1e3a8a"], html body [style*=";color:#1e3a8a"], html body [style$=" color:#1e3a8a"] { color: #a3b6eb !important; }
+  html body [style*=" color: #1e40af;"], html body [style^="color: #1e40af"], html body [style*=";color: #1e40af"], html body [style$=" color: #1e40af"], html body [style*=" color:#1e40af;"], html body [style^="color:#1e40af"], html body [style*=";color:#1e40af"], html body [style$=" color:#1e40af"] { color: #9fb2ef !important; }
+  html body [style*=" color: #22c55e;"], html body [style^="color: #22c55e"], html body [style*=";color: #22c55e"], html body [style$=" color: #22c55e"], html body [style*=" color:#22c55e;"], html body [style^="color:#22c55e"], html body [style*=";color:#22c55e"], html body [style$=" color:#22c55e"] { color: #9feebc !important; }
+  html body [style*=" color: #2563eb;"], html body [style^="color: #2563eb"], html body [style*=";color: #2563eb"], html body [style$=" color: #2563eb"], html body [style*=" color:#2563eb;"], html body [style^="color:#2563eb"], html body [style*=";color:#2563eb"], html body [style$=" color:#2563eb"] { color: #98b5f6 !important; }
+  html body [style*=" color: #333;"], html body [style^="color: #333"], html body [style*=";color: #333"], html body [style$=" color: #333"], html body [style*=" color:#333;"], html body [style^="color:#333"], html body [style*=";color:#333"], html body [style$=" color:#333"] { color: #e6e6e6 !important; }
+  html body [style*=" color: #374151;"], html body [style^="color: #374151"], html body [style*=";color: #374151"], html body [style$=" color: #374151"], html body [style*=" color:#374151;"], html body [style^="color:#374151"], html body [style*=";color:#374151"], html body [style$=" color:#374151"] { color: #abc0e3 !important; }
+  html body [style*=" color: #444;"], html body [style^="color: #444"], html body [style*=";color: #444"], html body [style$=" color: #444"], html body [style*=" color:#444;"], html body [style^="color:#444"], html body [style*=";color:#444"], html body [style$=" color:#444"] { color: #e6e6e6 !important; }
+  html body [style*=" color: #553399;"], html body [style^="color: #553399"], html body [style*=";color: #553399"], html body [style$=" color: #553399"], html body [style*=" color:#553399;"], html body [style^="color:#553399"], html body [style*=";color:#553399"], html body [style$=" color:#553399"] { color: #beabe3 !important; }
+  html body [style*=" color: #555;"], html body [style^="color: #555"], html body [style*=";color: #555"], html body [style$=" color: #555"], html body [style*=" color:#555;"], html body [style^="color:#555"], html body [style*=";color:#555"], html body [style$=" color:#555"] { color: #bdbdbd !important; }
+  html body [style*=" color: #666;"], html body [style^="color: #666"], html body [style*=";color: #666"], html body [style$=" color: #666"], html body [style*=" color:#666;"], html body [style^="color:#666"], html body [style*=";color:#666"], html body [style$=" color:#666"] { color: #bdbdbd !important; }
+  html body [style*=" color: #6b7280;"], html body [style^="color: #6b7280"], html body [style*=";color: #6b7280"], html body [style$=" color: #6b7280"], html body [style*=" color:#6b7280;"], html body [style^="color:#6b7280"], html body [style*=";color:#6b7280"], html body [style$=" color:#6b7280"] { color: #bdbdbd !important; }
+  html body [style*=" color: #713f12;"], html body [style^="color: #713f12"], html body [style*=";color: #713f12"], html body [style$=" color: #713f12"], html body [style*=" color:#713f12;"], html body [style^="color:#713f12"], html body [style*=";color:#713f12"], html body [style$=" color:#713f12"] { color: #f0c59e !important; }
+  html body [style*=" color: #7f1d1d;"], html body [style^="color: #7f1d1d"], html body [style*=";color: #7f1d1d"], html body [style$=" color: #7f1d1d"], html body [style*=" color:#7f1d1d;"], html body [style^="color:#7f1d1d"], html body [style*=";color:#7f1d1d"], html body [style$=" color:#7f1d1d"] { color: #eaa4a4 !important; }
+  html body [style*=" color: #84cc16;"], html body [style^="color: #84cc16"], html body [style*=";color: #84cc16"], html body [style$=" color: #84cc16"], html body [style*=" color:#84cc16;"], html body [style^="color:#84cc16"], html body [style*=";color:#84cc16"], html body [style$=" color:#84cc16"] { color: #d0f49a !important; }
+  html body [style*=" color: #854d0e;"], html body [style^="color: #854d0e"], html body [style*=";color: #854d0e"], html body [style$=" color: #854d0e"], html body [style*=" color:#854d0e;"], html body [style^="color:#854d0e"], html body [style*=";color:#854d0e"], html body [style$=" color:#854d0e"] { color: #f4ca99 !important; }
+  html body [style*=" color: #92400e;"], html body [style^="color: #92400e"], html body [style*=";color: #92400e"], html body [style$=" color: #92400e"], html body [style*=" color:#92400e;"], html body [style^="color:#92400e"], html body [style*=";color:#92400e"], html body [style$=" color:#92400e"] { color: #f5bc99 !important; }
+  html body [style*=" color: #991b1b;"], html body [style^="color: #991b1b"], html body [style*=";color: #991b1b"], html body [style$=" color: #991b1b"], html body [style*=" color:#991b1b;"], html body [style^="color:#991b1b"], html body [style*=";color:#991b1b"], html body [style$=" color:#991b1b"] { color: #eea0a0 !important; }
+  html body [style*=" color: #9a3412;"], html body [style^="color: #9a3412"], html body [style*=";color: #9a3412"], html body [style$=" color: #9a3412"], html body [style*=" color:#9a3412;"], html body [style^="color:#9a3412"], html body [style*=";color:#9a3412"], html body [style$=" color:#9a3412"] { color: #f3b19b !important; }
+  html body [style*=" color: #b45309;"], html body [style^="color: #b45309"], html body [style*=";color: #b45309"], html body [style$=" color: #b45309"], html body [style*=" color:#b45309;"], html body [style^="color:#b45309"], html body [style*=";color:#b45309"], html body [style$=" color:#b45309"] { color: #f7c097 !important; }
+  html body [style*=" color: #b91c1c;"], html body [style^="color: #b91c1c"], html body [style*=";color: #b91c1c"], html body [style$=" color: #b91c1c"], html body [style*=" color:#b91c1c;"], html body [style^="color:#b91c1c"], html body [style*=";color:#b91c1c"], html body [style$=" color:#b91c1c"] { color: #f09e9e !important; }
+  html body [style*=" color: #c2410c;"], html body [style^="color: #c2410c"], html body [style*=";color: #c2410c"], html body [style$=" color: #c2410c"], html body [style*=" color:#c2410c;"], html body [style^="color:#c2410c"], html body [style*=";color:#c2410c"], html body [style$=" color:#c2410c"] { color: #f7b397 !important; }
+  html body [style*=" color: #d97706;"], html body [style^="color: #d97706"], html body [style*=";color: #d97706"], html body [style$=" color: #d97706"], html body [style*=" color:#d97706;"], html body [style^="color:#d97706"], html body [style*=";color:#d97706"], html body [style$=" color:#d97706"] { color: #f7ca97 !important; }
+  html body [style*=" color: #dc2626;"], html body [style^="color: #dc2626"], html body [style*=";color: #dc2626"], html body [style$=" color: #dc2626"], html body [style*=" color:#dc2626;"], html body [style^="color:#dc2626"], html body [style*=";color:#dc2626"], html body [style$=" color:#dc2626"] { color: #ef9e9e !important; }
+  html body [style*=" color: #ea580c;"], html body [style^="color: #ea580c"], html body [style*=";color: #ea580c"], html body [style$=" color: #ea580c"], html body [style*=" color:#ea580c;"], html body [style^="color:#ea580c"], html body [style*=";color:#ea580c"], html body [style$=" color:#ea580c"] { color: #f7b897 !important; }
+  html body [style*=" color: #f59e0b;"], html body [style^="color: #f59e0b"], html body [style*=";color: #f59e0b"], html body [style$=" color: #f59e0b"], html body [style*=" color:#f59e0b;"], html body [style^="color:#f59e0b"], html body [style*=";color:#f59e0b"], html body [style$=" color:#f59e0b"] { color: #f7d397 !important; }
+  html body [style*=" color: #f97316;"], html body [style^="color: #f97316"], html body [style*=";color: #f97316"], html body [style$=" color: #f97316"], html body [style*=" color:#f97316;"], html body [style^="color:#f97316"], html body [style*=";color:#f97316"], html body [style$=" color:#f97316"] { color: #f7be97 !important; }
+  /* Kopfbereich, KPI-Kacheln, Saldo */
+  .header p, .header .subtitle { color: #a8a8a8 !important; }
+  .kpi { background-color: #2a2a2a !important; border-color: #444 !important; }
+  .kpi-label { color: #a8a8a8 !important; }
+  .kpi-value, #income, #spent, #remaining, #saverate { color: #ececec !important; }
+  .kpi-sub, .kpi div[style*="font-size: 10px"] { color: #9a9a9a !important; }
+  .kpi-click:hover { border-color: #3B82F6 !important; }
+  #saldoKpi[style*="rgb(240, 253, 244)"] { background-color: #14301f !important; border-color: #10B981 !important; }
+  #saldoKpi[style*="rgb(254, 242, 242)"] { background-color: #3a1c1c !important; border-color: #EF4444 !important; }
+  #saldo[style*="rgb(16, 185, 129)"] { color: #34d399 !important; }
+  #saldo[style*="rgb(239, 68, 68)"] { color: #f87171 !important; }
+  /* Neutrale Standard-Buttons (z.B. Abbrechen); Buttons mit eigener Farbe (inline) bleiben unberuehrt */
+  button:not(.btn-primary):not(.btn-success):not(.btn-danger):not(.btn-schritt) { background-color: #383838; color: #e6e6e6; border-color: #555; }
+  /* Buttons: weisse Schrift mit genug Kontrast */
+  .btn-success, .btn-schritt, .fixkosten-modal-btn-save, .sparkonten-modal-btn-save, .success-msg { background-color: #047857 !important; border-color: #047857 !important; color: #fff !important; }
+  .btn-primary { background-color: #2563eb !important; border-color: #2563eb !important; color: #fff !important; }
+  #userMenu button.btn-primary, #userMenu button.btn-success, #userMenu button.btn-schritt { color: #fff !important; }
+  .modal-content button.btn-primary { color: #fff !important; }
+  html body [style*="background: rgb(16, 185, 129)"], html body [style*="background-color: rgb(16, 185, 129)"] { background-color: #047857 !important; color: #fff !important; }
+  /* Schliessen-Buttons und Texte in Fenstern */
+  .modal button[aria-label], .modal-content button[onclick*="close"]:not(.btn-primary) { color: #cfcfcf !important; }
+  html body [style*="position: fixed; top: 70px"] { background-color: #047857 !important; color: #fff !important; }
+  /* Release Notes: Karten behalten ihre Farbzuordnung (getoent statt hell) */
+  .settings-card[style*="background-color"] p, .settings-card[style*="background-color"] li { color: inherit; }
+}
+
 /* v4.3.0 PHASE 4: CONSOLIDATED CSS CLASSES FOR OPTIMIZATION */
 /* Reduce redundancy, improve performance */
 
@@ -1333,7 +1491,7 @@ small { font-size: 12px; color: #999; }
         <p>Jahresplanung & Budgetierung deines Einkommens</p>
       </div>
       <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
-        <div class="version">v4.21.0.1</div>
+        <div class="version">v4.21.0.2</div>
         <div style="font-size: 10px; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.5px;">🔒 CLOSED BETA</div>
       </div>
     </div>
@@ -1899,9 +2057,21 @@ small { font-size: 12px; color: #999; }
         </p>
       </div>
 
+      <!-- v4.21.0.2: UI - DUNKELMODUS LESBAR -->
+      <div class="settings-card" style="background: #fff7ed; border-color: #fed7aa; border-width: 3px;">
+        <p style="font-size: 13px; font-weight: 700; color: #9a3412; margin-bottom: 0.5rem;">🌙 v4.21.0.2 - UI: Dunkelmodus lesbar (aktuell)</p>
+        <p style="font-size: 12px; color: #c2410c; line-height: 1.6; margin: 0;">
+          <strong>Problem:</strong> Im Dunkelmodus (iPhone/Mac) standen helle Schrift auf hellen Flächen und dunkle Schrift auf dunklen Flächen: Kacheln mit Einkommen, Ausgaben und Saldo, Fixkosten- und Sparkonten-Tab, Kategorien, Fenster und Release Notes waren zum Teil nicht zu lesen.<br>
+          <strong>Neu:</strong> Alle hellen Flächen werden im Dunkelmodus abgedunkelt, dunkle Schriften aufgehellt und Rahmen abgeschwächt. Die Farbzuordnung bleibt: Release-Notes-Karten sind weiter grün, rot, orange oder gelb (nur getönt), Saldo zeigt grün bzw. rot. Grüne und blaue Buttons haben jetzt genug Kontrast zur weißen Schrift.<br>
+          <strong>Unverändert:</strong> Der helle Modus sieht exakt so aus wie vorher (nur Dunkelmodus-Regeln). Keine Funktion und keine Daten geändert.<br>
+          <strong>Gemessen:</strong> Automatische Prüfung aller Tabs und Fenster auf zu geringen Kontrast: vorher 212 Stellen, jetzt 0.<br>
+          <strong>Was testen:</strong> iPhone/Mac auf Dunkelmodus: Budgetplanung (Kacheln), Kategorie-Fenster, Einkommen-Fenster, Fixkosten und Sparkonten (Liste und Neu-Fenster), Kategorien, Release Notes, Benutzermenü. Wenn dir noch eine Stelle auffällt, bitte Screenshot schicken.
+        </p>
+      </div>
+
       <!-- v4.21.0.1: BUGFIX - APP-UPDATE MELDET FALSCHE VERSION -->
-      <div class="settings-card" style="background: #fee2e2; border-color: #fca5a5; border-width: 3px;">
-        <p style="font-size: 13px; font-weight: 700; color: #991b1b; margin-bottom: 0.5rem;">🐛 v4.21.0.1 - Bugfix: App Update meldet falsche Version (aktuell)</p>
+      <div class="settings-card" style="background: #fee2e2; border-color: #fca5a5;">
+        <p style="font-size: 13px; font-weight: 700; color: #991b1b; margin-bottom: 0.5rem;">🐛 v4.21.0.1 - Bugfix: App Update meldet falsche Version</p>
         <p style="font-size: 12px; color: #b91c1c; line-height: 1.6; margin: 0;">
           <strong>Problem:</strong> Seit v4.20.1 meldete die App nach jedem Update "Das Update wurde noch nicht geladen (es läuft weiterhin v4.20.0)" und zeigte dauerhaft "Neue Version verfügbar", obwohl die neue Version lief. Die App verglich mit einer fest eingetragenen Versionsnummer, die bei v4.20.1 und v4.21.0 nicht mitgeändert wurde.<br>
           <strong>Fix:</strong> Die installierte Version wird jetzt aus dem Seitentitel gelesen, also aus derselben Zahl, die auch die Update-Prüfung auf dem Server vergleicht. Es gibt keine zweite Zahl mehr, die man vergessen kann. Das gilt auch für die Versionsangabe in Datensicherungen (Export).<br>
