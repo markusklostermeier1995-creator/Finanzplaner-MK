@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Gehaltsplaner CB">
   <meta name="theme-color" content="#3B82F6">
-  <title>Gehaltsplaner Pro v4.22.0.1 - Option A (Option A: Tab-Lokalisiert)</title>
+  <title>Gehaltsplaner Pro v4.23.0.1 - Option A (Option A: Tab-Lokalisiert)</title>
   <script>
     // Async load Chart.js with fallback
     const script = document.createElement('script');
@@ -1256,7 +1256,25 @@ small { font-size: 12px; color: #999; }
   }
 }
 
+/* v4.23.0: Hauptmenue */
+.mm-wrap { position: fixed; top: 0; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.5); z-index: 99998; }
+.mm-panel { position: absolute; top: 0; bottom: 0; left: 0; width: 280px; max-width: 85%; background: white; padding: calc(1rem + env(safe-area-inset-top, 0px)) 1rem 1rem 1rem; box-shadow: 2px 0 12px rgba(0,0,0,0.25); overflow-y: auto; box-sizing: border-box; }
+.mm-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.mm-title { font-size: 18px; font-weight: 700; }
+.mm-close { background: none; border: none; font-size: 20px; cursor: pointer; padding: 0; color: inherit; }
+.mm-item { display: block; width: 100%; text-align: left; padding: 0.875rem 0.75rem; margin-bottom: 0.5rem; font-size: 15px; font-weight: 600; background: #f3f4f6; border: 1px solid #ddd; border-radius: 8px; color: #333; cursor: pointer; }
+.mm-item.active { background: #dbeafe; border-color: #93c5fd; color: #1e40af; }
+.mm-page { padding-bottom: 2rem; }
   @media (prefers-color-scheme: dark) {
+  .mm-panel { background: #2a2a2a !important; color: #e6e6e6 !important; }
+  .mm-item { background: #383838 !important; border-color: #555 !important; color: #e6e6e6 !important; }
+  .mm-item.active { background: #1e3a5f !important; border-color: #3b5f85 !important; color: #bcd4f5 !important; }
+  .mm-close { color: #e6e6e6 !important; }
+  #mmUser { background: #1e3a5f !important; border-color: #3b5f85 !important; }
+  #mmUser div:not(.user-avatar) { color: #e6e6e6 !important; }
+  #mmUser div div:first-child { color: #bdbdbd !important; }
+  .mm-page button { color: #e0e0e0 !important; }
+  .mm-page button.btn-primary, .mm-page button.btn-success, .mm-page button.btn-schritt { color: #fff !important; }
   .empty-hint { background-color: #182e3f !important; border-color: #3b5f85 !important; color: #bcd4f5 !important; }
   .link-subtle { background: none !important; border: none !important; color: #9ca3af !important; }
 }
@@ -1268,10 +1286,15 @@ small { font-size: 12px; color: #999; }
   <!-- Minimalist Compact Header -->
   <div style="display: flex; align-items: center; gap: 1rem; padding: 0.75rem 1rem; padding-top: calc(0.75rem + env(safe-area-inset-top, 0px)); background: #f8f9fa; border-bottom: 1px solid #e0e0e0; box-sizing: border-box; min-height: calc(56px + env(safe-area-inset-top, 0px)); flex-shrink: 0;">
     <!-- Menu Button -->
-    <button onclick="openUserMenu()" class="btn-primary" style="padding: 8px 10px; font-size: 16px; border-radius: 6px; flex-shrink: 0;" title="Benutzer & Einstellungen">☰</button>
+    <button onclick="openMainMenu()" class="btn-primary" style="padding: 8px 10px; font-size: 16px; border-radius: 6px; flex-shrink: 0;" title="Menü" aria-label="Menü">☰</button>
     
     <!-- App Title (klein) -->
     <div style="font-weight: 600; color: #333; font-size: 14px; flex: 1;">budgetplaner</div>
+    <!-- v4.23.0.1: angemeldeter Benutzer -->
+    <div id="topBarUser" style="display: none; align-items: center; gap: 0.5rem; min-width: 0; max-width: 55%;">
+      <div class="user-avatar" id="topBarUserAvatar" style="width: 28px; height: 28px; font-size: 12px;">?</div>
+      <div id="topBarUserName" style="font-size: 13px; font-weight: 600; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></div>
+    </div>
   </div>
 
   <!-- v4.10.0: App-Update-Banner (erscheint nur, wenn eine neuere Version gefunden wurde) -->
@@ -1416,66 +1439,24 @@ small { font-size: 12px; color: #999; }
     </div>
   </div>
 
-  <div class="modal" id="userMenu" style="z-index: 99998;">
-    <div class="modal-content" style="max-width: 350px; width: 90%;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-        <h2 style="margin: 0; font-size: 18px;">👤 Benutzer & Einstellungen</h2>
-        <button onclick="closeUserMenu()" style="background: none; border: none; font-size: 20px; cursor: pointer; padding: 0;">✕</button>
+  <!-- v4.23.0: Hauptmenue (Seitenmenue) -->
+  <div id="mainMenu" class="mm-wrap" style="display: none;" onclick="if (event.target === this) closeMainMenu()">
+    <div class="mm-panel" role="dialog" aria-label="Menü">
+      <div class="mm-head">
+        <span class="mm-title">Menü</span>
+        <button onclick="closeMainMenu()" class="mm-close" aria-label="Schließen">✕</button>
       </div>
-
-      <!-- Aktueller Benutzer -->
-      <div style="background: #f0f9ff; border: 2px solid #3B82F6; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;">
-        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-          <div class="user-avatar" id="menuUserAvatar" style="width: 50px; height: 50px; font-size: 20px;">?</div>
-          <div style="flex: 1;">
-            <div style="font-size: 14px; font-weight: 600; color: #333;" id="menuUserName">–</div>
-          </div>
-        </div>
-        <!-- Edit & Delete Buttons -->
-        <div style="display: flex; gap: 0.5rem;">
-          <button onclick="editCurrentUser()" class="btn-primary" style="flex: 1; padding: 0.5rem; font-size: 12px;">✏️ Bearbeiten</button>
-          <button onclick="showDeleteUserWarning()" class="btn-primary" style="flex: 1; padding: 0.5rem; font-size: 12px; background: #EF4444; border-color: #EF4444;">🗑️ Löschen</button>
+      <div id="mmUser" style="display: none; align-items: center; gap: 0.75rem; background: #f0f9ff; border: 2px solid #3B82F6; border-radius: 8px; padding: 0.625rem 0.75rem; margin-bottom: 1rem;">
+        <div class="user-avatar" id="mmUserAvatar" style="width: 36px; height: 36px; font-size: 14px;">?</div>
+        <div style="min-width: 0;">
+          <div style="font-size: 11px; color: #666;">Angemeldet als</div>
+          <div id="mmUserName" style="font-size: 14px; font-weight: 600; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></div>
         </div>
       </div>
-
-      <!-- Zu anderem Benutzer wechseln -->
-      <div style="margin-bottom: 1.5rem;">
-        <p style="font-size: 12px; font-weight: 600; color: #333; margin-bottom: 0.75rem;">🔄 Wechseln zu:</p>
-        <div id="userMenuSwitchGrid" style="display: flex; flex-direction: column; gap: 0.5rem;">
-          <!-- Wird dynamisch gefüllt -->
-        </div>
-      </div>
-
-      <!-- v4.8.3: Daten sichern (Export/Import) -->
-      <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 8px; padding: 0.875rem; margin-bottom: 1.5rem;">
-        <p style="font-size: 12px; font-weight: 600; color: #166534; margin: 0 0 0.25rem 0;">💾 Daten sichern & übertragen</p>
-        <p style="font-size: 11px; color: #15803d; line-height: 1.5; margin: 0 0 0.75rem 0;">Exportiert alle Benutzer und Planzahlen als JSON-Datei. Mit dem Import lädst du sie auf einem anderen Gerät oder als Backup wieder ein.</p>
-        <div style="display: flex; gap: 0.5rem;">
-          <button onclick="exportDataJSON()" class="btn-primary" style="flex: 1; padding: 0.5rem; font-size: 12px;">⬇️ Exportieren</button>
-          <button onclick="document.getElementById('importDataFile').click()" class="btn-primary" style="flex: 1; padding: 0.5rem; font-size: 12px;">⬆️ Importieren</button>
-        </div>
-        <input type="file" id="importDataFile" accept=".json,application/json" style="display: none;" onchange="importDataJSON(this)">
-      </div>
-
-      <!-- v4.10.0: App Update -->
-      <div style="background: #eff6ff; border: 1.5px solid #93c5fd; border-radius: 8px; padding: 0.875rem; margin-bottom: 1.5rem;">
-        <p style="font-size: 12px; font-weight: 600; color: #1e40af; margin: 0 0 0.25rem 0;">🔄 App Update</p>
-        <p style="font-size: 11px; color: #1d4ed8; line-height: 1.5; margin: 0 0 0.75rem 0;">Installiert: <strong id="appUpdateVersion">–</strong>. Sucht nach einer neueren Version und lädt sie. Deine gespeicherten Daten bleiben erhalten.</p>
-        <button onclick="checkForAppUpdate(true)" class="btn-primary" style="width: 100%; padding: 0.5rem; font-size: 12px;">🔄 App Update</button>
-        <p id="appUpdateStatus" style="font-size: 11px; line-height: 1.5; margin: 0.5rem 0 0 0; min-height: 1em; color: #1e40af;"></p>
-      </div>
-
-      <!-- v4.13.0: Cloud-Konto -->
-      <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 8px; padding: 0.875rem; margin-bottom: 1.5rem;">
-        <p style="font-size: 12px; font-weight: 600; color: #166534; margin: 0 0 0.25rem 0;">☁️ Cloud-Konto</p>
-        <p style="font-size: 11px; color: #15803d; line-height: 1.5; margin: 0 0 0.75rem 0;" id="cloudMenuStatus">Nicht angemeldet.</p>
-        <button onclick="openCloudModal()" class="btn-success" style="width: 100%; padding: 0.5rem; font-size: 12px;" id="cloudMenuButton">☁️ Anmelden / Registrieren</button>
-      </div>
-
-      <!-- Buttons -->
-      <div style="display: flex; gap: 0.5rem;">
-        <button onclick="openNewUserModal(); closeUserMenu();" class="btn-success" style="flex: 1;">+ Neuer Benutzer</button>
-      </div>
+      <button class="mm-item" id="mmItemUsers" onclick="goSection('users')">👤 Benutzerverwaltung</button>
+      <button class="mm-item" id="mmItemBudget" onclick="goSection('budget')">📊 Budgetplaner</button>
+      <button class="mm-item" id="mmItemSettings" onclick="goSection('settings')">⚙️ Einstellungen</button>
+      <button class="mm-item" id="mmItemNotes" onclick="goSection('notes')">📝 Release Notes</button>
     </div>
   </div>
 
@@ -1501,17 +1482,16 @@ small { font-size: 12px; color: #999; }
         <p>Jahresplanung & Budgetierung deines Einkommens</p>
       </div>
       <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
-        <div class="version">v4.22.0.1</div>
+        <div class="version">v4.23.0.1</div>
         <div style="font-size: 10px; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.5px;">🔒 CLOSED BETA</div>
       </div>
     </div>
 
-    <div class="tabs">
+    <div class="tabs" id="budgetTabs">
       <button class="tab-btn active" onclick="switchTab(0)">📊 Budgetplanung</button>
       <button class="tab-btn" onclick="switchTab(1)">💰 Fixkosten</button>
       <button class="tab-btn" onclick="switchTab(2)">🏦 Sparkonten</button>
       <button class="tab-btn" onclick="switchTab(3)">🏷️ Kategorien</button>
-      <button class="tab-btn" onclick="switchTab(4)">📝 Release Notes</button>
     </div>
 
     <!-- Welcome Screen (shown when no users exist) -->
@@ -1608,11 +1588,8 @@ small { font-size: 12px; color: #999; }
         <select id="yearFixkostenSelect" onchange="updateYearFixkosten()" style="margin-bottom: 0;"></select>
       </div>
 
-      <!-- v4.0.9.5 COPY + DELETE BUTTONS (SIDE BY SIDE) -->
+      <!-- v4.22.0.2: "Aus vorherigem Jahr" entfernt (Serienmodell fuellt Folgejahre automatisch) -->
       <div class="settings-card" style="display: flex; gap: 1rem;">
-        <button onclick="copyFixkostenToNextYear()" style="flex: 1; padding: 0.75rem 1rem; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
-          📋 Aus vorherigem Jahr
-        </button>
         <button onclick="deleteAllFixkostenConfirm()" style="flex: 1; padding: 0.75rem 1rem; background: #dc2626; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
           🗑️ Alle löschen
         </button>
@@ -1781,9 +1758,6 @@ small { font-size: 12px; color: #999; }
 
       <!-- v4.0.9.5 COPY + DELETE BUTTONS (SIDE BY SIDE) -->
       <div class="settings-card" style="display: flex; gap: 1rem;">
-        <button onclick="copySparkontenToNextYear()" style="flex: 1; padding: 0.75rem 1rem; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
-          📋 Aus vorherigem Jahr
-        </button>
         <button onclick="deleteAllSparkontenConfirm()" style="flex: 1; padding: 0.75rem 1rem; background: #dc2626; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
           🗑️ Alle löschen
         </button>
@@ -2065,9 +2039,56 @@ small { font-size: 12px; color: #999; }
         </p>
       </div>
 
-      <!-- v4.22.0.1: UI - MONAT LEEREN ALS LINK -->
+      <!-- v4.23.0.1: UI - ANGEMELDETER BENUTZER SICHTBAR -->
       <div class="settings-card" style="background: #fff7ed; border-color: #fed7aa; border-width: 3px;">
-        <p style="font-size: 13px; font-weight: 700; color: #9a3412; margin-bottom: 0.5rem;">🧹 v4.22.0.1 - UI: "Monat leeren" statt rotem Löschen-Button (aktuell)</p>
+        <p style="font-size: 13px; font-weight: 700; color: #9a3412; margin-bottom: 0.5rem;">👤 v4.23.0.1 - UI: Angemeldeter Benutzer sichtbar (aktuell)</p>
+        <p style="font-size: 12px; color: #c2410c; line-height: 1.6; margin: 0;">
+          <strong>Problem:</strong> Mit dem neuen Hauptmenü (v4.23.0) stand der Name des angemeldeten Benutzers nur noch in der Benutzerverwaltung. Im Budgetplaner war nicht erkennbar, wer angemeldet ist.<br>
+          <strong>Fix:</strong> Avatar und Name stehen jetzt rechts in der Kopfzeile (auf jeder Seite) und im geöffneten Menü oben als "Angemeldet als". Ohne angemeldeten Benutzer werden sie ausgeblendet. Der Name wird bei Benutzerwechsel, Bearbeiten und Löschen aktualisiert.<br>
+          <strong>Unverändert:</strong> Menüpunkte, Benutzerwechsel (öffnet weiter die Budgetplanung), alle Funktionen und Daten.<br>
+          <strong>Was testen:</strong> Name oben rechts in der Kopfzeile prüfen. ☰ öffnen: "Angemeldet als" oben im Menü. Benutzer wechseln und umbenennen: Anzeige folgt. Dunkelmodus ansehen.
+        </p>
+      </div>
+
+      <!-- v4.23.0: UI - HAUPTMENUE MIT 4 BEREICHEN -->
+      <div class="settings-card" style="background: #fff7ed; border-color: #fed7aa;">
+        <p style="font-size: 13px; font-weight: 700; color: #9a3412; margin-bottom: 0.5rem;">🧭 v4.23.0 - UI: Hauptmenü mit vier Bereichen</p>
+        <p style="font-size: 12px; color: #c2410c; line-height: 1.6; margin: 0;">
+          <strong>Neu:</strong> Der ☰-Button öffnet ein Seitenmenü mit vier Bereichen: <strong>Benutzerverwaltung</strong>, <strong>Budgetplaner</strong>, <strong>Einstellungen</strong> und <strong>Release Notes</strong>. Der aktuelle Bereich ist im Menü markiert. Schließen per ✕, Tipp neben das Menü oder Esc.<br>
+          <strong>Benutzerverwaltung:</strong> aktueller Benutzer, Bearbeiten/Löschen, Wechseln, Neuer Benutzer (bisher im Fenster "Benutzer &amp; Einstellungen").<br>
+          <strong>Budgetplaner:</strong> die vier Tabs Budgetplanung, Fixkosten, Sparkonten und Kategorien. Die Tab-Leiste erscheint nur hier, "Release Notes" ist aus ihr herausgenommen. Das Menü öffnet den zuletzt benutzten Tab.<br>
+          <strong>Einstellungen:</strong> Daten sichern (Export/Import), App Update und Cloud-Konto, jetzt als eigene Seite statt im Fenster.<br>
+          <strong>Unverändert:</strong> alle Funktionen und Daten. Es wurde nur die Anordnung geändert. Nach einem Benutzerwechsel öffnet sich weiterhin die Budgetplanung.<br>
+          <strong>Was testen:</strong> ☰ öffnen und jeden der vier Bereiche anwählen. Im Budgetplaner einen Tab wählen, in die Einstellungen wechseln und zurück: derselbe Tab ist offen. Export, App Update und Cloud-Konto in den Einstellungen ausprobieren. Dunkelmodus ansehen.
+        </p>
+      </div>
+
+      <!-- v4.22.0.3: BUGFIX - ALLE LOESCHEN MIT GELTUNGSBEREICH -->
+      <div class="settings-card" style="background: #fee2e2; border-color: #fca5a5;">
+        <p style="font-size: 13px; font-weight: 700; color: #991b1b; margin-bottom: 0.5rem;">🐛 v4.22.0.3 - Bugfix: "Alle löschen" mit Geltungsbereich</p>
+        <p style="font-size: 12px; color: #b91c1c; line-height: 1.6; margin: 0;">
+          <strong>Problem:</strong> "Alle löschen" (Fixkosten und Sparkonten) leerte immer nur die Liste des gewählten Jahres und kannte Reihen "ab Jahr" nicht. Eine Miete "ab 2026", in 2027 gelöscht, fehlte dann nur in 2027 und lief in 2026 und 2028 weiter (Lücke). In einem noch nie geöffneten Folgejahr kam ein gelöschter Eintrag wieder zurück.<br>
+          <strong>Fix:</strong> Kommen in dem Jahr Einträge "ab Jahr" vor, fragt das Fenster wie beim Löschen eines einzelnen Eintrags nach dem Geltungsbereich: "Nur [Jahr]" oder "Ab [Jahr] (und alle folgenden Jahre)". Ein Hinweis darunter erklärt die Wirkung. Bei "Ab" enden die Reihen mit dem Vorjahr, frühere Jahre bleiben unverändert. Einträge ohne Reihe werden wie bisher nur in diesem Jahr gelöscht. Ohne Reihen im Jahr erscheint die Auswahl nicht.<br>
+          <strong>Unverändert:</strong> Die Rückfrage "kann nicht rückgängig gemacht werden", das Löschen einzelner Einträge, Rechenlogik, Daten anderer Jahre.<br>
+          <strong>Was testen:</strong> Fixkosten "ab 2026" anlegen, 2027 wählen, "Alle löschen": Auswahl erscheint. "Nur 2027": 2027 leer, 2026 und 2028 behalten den Eintrag. Danach mit "Ab 2027": Eintrag ab 2027 überall weg, 2026 unverändert. Dasselbe bei Sparkonten. Ein Jahr ohne Reihen: keine Auswahl.
+        </p>
+      </div>
+
+      <!-- v4.22.0.2: UI - "AUS VORHERIGEM JAHR" ENTFERNT -->
+      <div class="settings-card" style="background: #fff7ed; border-color: #fed7aa;">
+        <p style="font-size: 13px; font-weight: 700; color: #9a3412; margin-bottom: 0.5rem;">🧹 v4.22.0.2 - UI: "Aus vorherigem Jahr" entfernt</p>
+        <p style="font-size: 12px; color: #c2410c; line-height: 1.6; margin: 0;">
+          <strong>Entfernt:</strong> Die Buttons "Aus vorherigem Jahr" in den Tabs Fixkosten und Sparkonten, dazu das zugehörige Fenster und der alte Kopier-Code.<br>
+          <strong>Warum:</strong> Der Button stammte aus der Zeit vor den Serien (v4.0.9). Er prüfte nicht, ob ein Eintrag im Zieljahr schon existiert, und konnte Fixkosten verdoppeln (z. B. Miete 800 € → 1.600 € im Monat). Außerdem ging ein Enddatum beim Kopieren verloren. Folgejahre füllen sich seit v4.12.0 automatisch: Wer einen Eintrag mit "ab diesem Jahr" oder "alle Jahre" anlegt, hat ihn auch in den späteren Jahren.<br>
+          <strong>Statt dessen:</strong> Neuen Eintrag mit "Gilt für: ab diesem Jahr" anlegen oder einen bestehenden Eintrag bearbeiten und den Geltungsbereich ändern.<br>
+          <strong>Unverändert:</strong> "Alle löschen" (wird als Nächstes überarbeitet), Rechenlogik, Daten, bestehende Einträge.<br>
+          <strong>Was testen:</strong> Tab Fixkosten und Sparkonten: Es gibt nur noch "Alle löschen" (statt zwei Buttons). Ein späteres Jahr wählen: Einträge "ab diesem Jahr" sind automatisch da. Dunkelmodus ansehen.
+        </p>
+      </div>
+
+      <!-- v4.22.0.1: UI - MONAT LEEREN ALS LINK -->
+      <div class="settings-card" style="background: #fff7ed; border-color: #fed7aa;">
+        <p style="font-size: 13px; font-weight: 700; color: #9a3412; margin-bottom: 0.5rem;">🧹 v4.22.0.1 - UI: "Monat leeren" statt rotem Löschen-Button</p>
         <p style="font-size: 12px; color: #c2410c; line-height: 1.6; margin: 0;">
           <strong>Neu:</strong> Der große rote Button "Löschen" unter den Kategorien entfällt. Stattdessen steht in der Zeile "✓ Änderungen werden automatisch gespeichert" ein kleiner Link "Monat leeren". Die Rückfrage und die Wirkung sind unverändert: Es werden nur die Budget-Eingaben des Monats gelöscht, Fixkosten und Sparkonten bleiben.<br>
           <strong>Nur wo sinnvoll:</strong> Der Link erscheint nur, wenn der Monat Beträge hat. In einem leeren Monat gibt es nichts zu leeren, dort steht der Hinweis zum Übernehmen.<br>
@@ -5130,6 +5151,71 @@ small { font-size: 12px; color: #999; }
       </script>
     </div>
 
+    <!-- v4.23.0: Seite Benutzerverwaltung -->
+    <div id="tab5" class="tab-content mm-page">
+      <h2 style="margin: 0 0 1rem 0; font-size: 18px;">👤 Benutzerverwaltung</h2>
+      <!-- Aktueller Benutzer -->
+      <div style="background: #f0f9ff; border: 2px solid #3B82F6; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+          <div class="user-avatar" id="menuUserAvatar" style="width: 50px; height: 50px; font-size: 20px;">?</div>
+          <div style="flex: 1;">
+            <div style="font-size: 14px; font-weight: 600; color: #333;" id="menuUserName">–</div>
+          </div>
+        </div>
+        <!-- Edit & Delete Buttons -->
+        <div style="display: flex; gap: 0.5rem;">
+          <button onclick="editCurrentUser()" class="btn-primary" style="flex: 1; padding: 0.5rem; font-size: 12px;">✏️ Bearbeiten</button>
+          <button onclick="showDeleteUserWarning()" class="btn-primary" style="flex: 1; padding: 0.5rem; font-size: 12px; background: #EF4444; border-color: #EF4444;">🗑️ Löschen</button>
+        </div>
+      </div>
+
+      <!-- Zu anderem Benutzer wechseln -->
+      <div style="margin-bottom: 1.5rem;">
+        <p style="font-size: 12px; font-weight: 600; color: #333; margin-bottom: 0.75rem;">🔄 Wechseln zu:</p>
+        <div id="userMenuSwitchGrid" style="display: flex; flex-direction: column; gap: 0.5rem;">
+          <!-- Wird dynamisch gefüllt -->
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div style="display: flex; gap: 0.5rem;">
+        <button onclick="openNewUserModal();" class="btn-success" style="flex: 1;">+ Neuer Benutzer</button>
+      </div>
+    </div>
+
+    <!-- v4.23.0: Seite Einstellungen -->
+    <div id="tab6" class="tab-content mm-page">
+      <h2 style="margin: 0 0 1rem 0; font-size: 18px;">⚙️ Einstellungen</h2>
+      <!-- v4.8.3: Daten sichern (Export/Import) -->
+      <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 8px; padding: 0.875rem; margin-bottom: 1.5rem;">
+        <p style="font-size: 12px; font-weight: 600; color: #166534; margin: 0 0 0.25rem 0;">💾 Daten sichern & übertragen</p>
+        <p style="font-size: 11px; color: #15803d; line-height: 1.5; margin: 0 0 0.75rem 0;">Exportiert alle Benutzer und Planzahlen als JSON-Datei. Mit dem Import lädst du sie auf einem anderen Gerät oder als Backup wieder ein.</p>
+        <div style="display: flex; gap: 0.5rem;">
+          <button onclick="exportDataJSON()" class="btn-primary" style="flex: 1; padding: 0.5rem; font-size: 12px;">⬇️ Exportieren</button>
+          <button onclick="document.getElementById('importDataFile').click()" class="btn-primary" style="flex: 1; padding: 0.5rem; font-size: 12px;">⬆️ Importieren</button>
+        </div>
+        <input type="file" id="importDataFile" accept=".json,application/json" style="display: none;" onchange="importDataJSON(this)">
+      </div>
+
+      <!-- v4.10.0: App Update -->
+      <div style="background: #eff6ff; border: 1.5px solid #93c5fd; border-radius: 8px; padding: 0.875rem; margin-bottom: 1.5rem;">
+        <p style="font-size: 12px; font-weight: 600; color: #1e40af; margin: 0 0 0.25rem 0;">🔄 App Update</p>
+        <p style="font-size: 11px; color: #1d4ed8; line-height: 1.5; margin: 0 0 0.75rem 0;">Installiert: <strong id="appUpdateVersion">–</strong>. Sucht nach einer neueren Version und lädt sie. Deine gespeicherten Daten bleiben erhalten.</p>
+        <button onclick="checkForAppUpdate(true)" class="btn-primary" style="width: 100%; padding: 0.5rem; font-size: 12px;">🔄 App Update</button>
+        <p id="appUpdateStatus" style="font-size: 11px; line-height: 1.5; margin: 0.5rem 0 0 0; min-height: 1em; color: #1e40af;"></p>
+      </div>
+
+      <!-- v4.13.0: Cloud-Konto -->
+      <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 8px; padding: 0.875rem; margin-bottom: 1.5rem;">
+        <p style="font-size: 12px; font-weight: 600; color: #166534; margin: 0 0 0.25rem 0;">☁️ Cloud-Konto</p>
+        <p style="font-size: 11px; color: #15803d; line-height: 1.5; margin: 0 0 0.75rem 0;" id="cloudMenuStatus">Nicht angemeldet.</p>
+        <button onclick="openCloudModal()" class="btn-success" style="width: 100%; padding: 0.5rem; font-size: 12px;" id="cloudMenuButton">☁️ Anmelden / Registrieren</button>
+      </div>
+
+    </div>
+
+
+
     </div>
   </div>
 </div>
@@ -5344,42 +5430,17 @@ small { font-size: 12px; color: #999; }
       <p id="deleteAllMessage" style="margin: 0;"><!-- Wird dynamisch gefüllt --></p>
       <p style="margin: 0.75rem 0 0 0; font-size: 12px; color: #999;">Diese Aktion kann nicht rückgängig gemacht werden.</p>
     </div>
+
+    <!-- v4.22.0.3: Geltungsbereich wie beim Loeschen eines einzelnen Eintrags (nur wenn Reihen "ab Jahr" dabei sind) -->
+    <div class="serie-scope-box" id="deleteAllScopeBox" style="display: none; margin-bottom: 1rem; padding: 0.75rem; border-radius: 6px;">
+      <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px;">Löschen für</label>
+      <select id="deleteAllScope" onchange="updateDeleteAllScopeHint()" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;"></select>
+      <p id="deleteAllScopeHint" style="margin: 0.5rem 0 0 0; font-size: 12px;"></p>
+    </div>
     
     <div class="modal-buttons">
       <button onclick="closeDeleteAllConfirm()" style="background: #e5e7eb; color: #333;">Abbrechen</button>
       <button id="deleteAllConfirmButton" onclick="" class="btn-primary" style="background: #ef4444;">Ja, löschen</button>
-    </div>
-  </div>
-</div>
-
-<!-- v4.0.9 COPY CONFIRMATION MODAL - MIT JAHR-AUSWAHL -->
-<div id="copyConfirmationModal" class="modal" style="display: none;">
-  <div class="modal-content">
-    <div class="modal-title">Daten übertragen</div>
-    
-    <div style="margin: 1.5rem 0;">
-      <div class="modal-input">
-        <label style="font-weight: 600; color: #333; margin-bottom: 0.5rem; display: block;">Von welchem Jahr?</label>
-        <select id="copySourceYear" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
-          <!-- Wird dynamisch gefüllt -->
-        </select>
-      </div>
-      
-      <div class="modal-input" style="margin-top: 1rem;">
-        <label style="font-weight: 600; color: #333; margin-bottom: 0.5rem; display: block;">In welches Jahr?</label>
-        <div id="copyTargetYear" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; background: #f3f4f6; color: #333; font-weight: 600;">
-          <!-- Wird dynamisch gefüllt mit currentYear -->
-        </div>
-      </div>
-    </div>
-    
-    <div style="font-size: 14px; color: #666; margin: 1rem 0; padding: 1rem; background: #f3f4f6; border-radius: 6px;">
-      <p id="copyMessage" style="margin: 0;"><!-- Wird dynamisch gefüllt --></p>
-    </div>
-    
-    <div class="modal-buttons">
-      <button onclick="closeCopyConfirmationModal()" style="background: #e5e7eb; color: #333;">Abbrechen</button>
-      <button id="confirmCopyBtn" onclick="" class="btn-primary">Ja, kopieren</button>
     </div>
   </div>
 </div>
@@ -5495,7 +5556,6 @@ const DOM_CACHE = {
   fixkostenModal: null,
   sparkontenModal: null,
   deleteAllConfirmModal: null,
-  copyConfirmationModal: null,
   deleteMonthModal: null,
   
   // Year Selects
@@ -5522,7 +5582,6 @@ function initDOMCache() {
   DOM_CACHE.fixkostenModal = document.getElementById('fixkostenModal');
   DOM_CACHE.sparkontenModal = document.getElementById('sparkontenModal');
   DOM_CACHE.deleteAllConfirmModal = document.getElementById('deleteAllConfirmModal');
-  DOM_CACHE.copyConfirmationModal = document.getElementById('copyConfirmationModal');
   DOM_CACHE.deleteMonthModal = document.getElementById('deleteMonthModal');
   DOM_CACHE.yearFixkostenSelect = document.getElementById('yearFixkostenSelect');
   DOM_CACHE.yearSparkontenSelect = document.getElementById('yearSparkontenSelect');
@@ -6204,6 +6263,7 @@ function renderUserUI() {
     
     if (avatarEl) avatarEl.textContent = user.avatar || '?';
     if (nameEl) nameEl.textContent = user.name || 'Unbekannt';
+    updateCurrentUserLabels();   // v4.23.0.1
     
     // Aktualisiere Benutzer-Menü
     renderUserMenuGrid();
@@ -6422,16 +6482,53 @@ function showSuccessMessage(text) {
 function openNewUserModal() { document.getElementById('newUserModal').classList.add('active'); document.getElementById('newUserName').focus(); }
 function closeNewUserModal() { document.getElementById('newUserModal').classList.remove('active'); }
 
-function openUserMenu() {
-  const menu = document.getElementById('userMenu');
-  menu.classList.add('active');
-  renderUserMenuGrid();
+// v4.23.0: Hauptmenue (Seitenmenue) mit Benutzerverwaltung, Budgetplaner, Einstellungen, Release Notes
+let lastBudgetTab = 0;
+// v4.23.0.1: angemeldeten Benutzer in Kopfzeile und Menue anzeigen
+function updateCurrentUserLabels() {
+  const u = (currentUser && allData && allData.users) ? allData.users[currentUser] : null;
+  const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+  set('topBarUserAvatar', u ? (u.avatar || '?') : '?'); set('topBarUserName', u ? (u.name || 'Unbekannt') : '');
+  set('mmUserAvatar', u ? (u.avatar || '?') : '?'); set('mmUserName', u ? (u.name || 'Unbekannt') : '');
+  const d = u ? 'flex' : 'none';
+  ['topBarUser', 'mmUser'].forEach(id => { const e = document.getElementById(id); if (e) e.style.display = d; });
 }
-
-function closeUserMenu() {
-  const menu = document.getElementById('userMenu');
-  menu.classList.remove('active');
+function mmCurrentSection() {
+  const t = lastActiveTab;
+  if (t === 4) return 'notes';
+  if (t === 5) return 'users';
+  if (t === 6) return 'settings';
+  return 'budget';
 }
+function openMainMenu() {
+  const m = document.getElementById('mainMenu');
+  if (!m) return;
+  const cur = mmCurrentSection();
+  [['users', 'mmItemUsers'], ['budget', 'mmItemBudget'], ['settings', 'mmItemSettings'], ['notes', 'mmItemNotes']].forEach(p => {
+    const el = document.getElementById(p[1]);
+    if (el) el.classList.toggle('active', p[0] === cur);
+  });
+  m.style.display = 'block';
+}
+function closeMainMenu() {
+  const m = document.getElementById('mainMenu');
+  if (m) m.style.display = 'none';
+}
+function goSection(name) {
+  closeMainMenu();
+  if (name === 'users') { renderUserMenuGrid(); switchTab(5); }
+  else if (name === 'settings') { switchTab(6); }
+  else if (name === 'notes') { switchTab(4); }
+  else {
+    if (!currentUser || !allData.users[currentUser]) { showWelcomeScreen(); lastActiveTab = -1; const bt = document.getElementById('budgetTabs'); if (bt) bt.style.display = ''; return; }
+    switchTab(lastBudgetTab);
+  }
+  window.scrollTo(0, 0);
+}
+// Alt-Name bleibt erhalten (wird an mehreren Stellen nach Aktionen aufgerufen): schliesst nur das Menue
+function openUserMenu() { goSection('users'); }
+function closeUserMenu() { closeMainMenu(); }
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMainMenu(); });
 
 function showWelcomeScreen() {
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -6443,6 +6540,8 @@ function showWelcomeScreen() {
   const nameEl = document.getElementById('menuUserName');
   if (avatarEl) avatarEl.textContent = '?';
   if (nameEl) nameEl.textContent = '–';
+  updateCurrentUserLabels();   // v4.23.0.1
+  ['topBarUser', 'mmUser'].forEach(id => { const e = document.getElementById(id); if (e) e.style.display = 'none'; });   // Willkommen = niemand angemeldet
 
   // v4.5.5 BUGFIX: Bestehende User direkt auf Welcome Screen anzeigen
   const existingSection = document.getElementById('welcomeExistingUsers');
@@ -6640,6 +6739,10 @@ function switchTab(i) {
   
   // v4.7.2: Cached Tab-Buttons statt querySelectorAll
   DOM_CACHE.tabButtons.forEach(el => el.classList.remove('active'));
+  // v4.23.0: Unterleiste nur im Budgetplaner (Tabs 0-3); merkt sich den zuletzt genutzten Budget-Tab
+  const budgetTabsBar = document.getElementById('budgetTabs');
+  if (budgetTabsBar) budgetTabsBar.style.display = (i >= 0 && i <= 3) ? '' : 'none';
+  if (i >= 0 && i <= 3) lastBudgetTab = i;
   
   // Aktiviere nur das neue Tab
   document.getElementById('tab' + i).classList.add('active');
@@ -9647,78 +9750,6 @@ function deleteMonth() {
 }
 
 
-// ========================================
-// v4.0.9: COPY TO NEXT YEAR FUNCTIONS
-// ========================================
-
-function copyFixkostenToNextYear() {
-  openCopyModal("Fixkosten", "fixkosten");
-}
-
-function copySparkontenToNextYear() {
-  openCopyModal("Sparkonten", "sparkonten");
-}
-
-function openCopyModal(type, category) {
-  const user = allData.users[currentUser];
-  
-  // Populate Source Year Select mit ALLEN Jahren 2020-2030
-  const sourceSelect = document.getElementById("copySourceYear");
-  sourceSelect.innerHTML = "";
-  for (let year = 2030; year >= 2020; year--) {
-    const option = document.createElement("option");
-    option.value = year;
-    option.textContent = year;
-    sourceSelect.appendChild(option);
-  }
-  
-  // Setze default auf aktuelles Jahr wenn vorhanden
-  if (user[category][currentYear]) {
-    sourceSelect.value = currentYear;
-  }
-  
-  // Setze Target Year (read-only, immer currentYear)
-  document.getElementById("copyTargetYear").textContent = currentYear;
-  
-  // onChange: Update Copy Message
-  sourceSelect.onchange = () => {
-    updateCopyMessage(type, category);
-  };
-  
-  // Initial update message
-  updateCopyMessage(type, category);
-  
-  // Setze Confirm Button Handler
-  document.getElementById("confirmCopyBtn").onclick = () => {
-    const fromYear = parseInt(document.getElementById("copySourceYear").value);
-    const toYear = currentYear;
-    
-    if (fromYear === toYear) {
-      alert("Du kannst nicht vom aktuellen Jahr ins aktuelle Jahr kopieren!");
-      return;
-    }
-    
-    executeCopy(category, fromYear, toYear);
-    closeCopyConfirmationModal();
-  };
-  
-  // Öffne Modal
-  document.getElementById("copyConfirmationModal").style.display = "block";
-}
-
-function updateCopyMessage(type, category) {
-  const sourceYear = parseInt(document.getElementById("copySourceYear").value);
-  const user = allData.users[currentUser];
-  const count = user[category][sourceYear]?.length || 0;
-  document.getElementById("copyMessage").innerHTML = 
-    `<strong>${count}</strong> ${type} werden von ${sourceYear} nach ${currentYear} kopiert`;
-}
-
-
-function closeCopyConfirmationModal() {
-  document.getElementById("copyConfirmationModal").style.display = "none";
-}
-
 // ============================================================
 // v4.4.2: STANDARD GEHALT MODAL FUNCTIONS
 // ============================================================
@@ -9776,60 +9807,6 @@ function saveStandardGehaltInline() {
   }
 }
 
-function executeCopy(category, fromYear, toYear) {
-  const user = allData.users[currentUser];
-  
-  // Checke ob Source Year Daten hat
-  const itemsToCopy = user[category][fromYear];
-  if (!itemsToCopy || itemsToCopy.length === 0) {
-    alert("Keine " + (category === 'fixkosten' ? 'Fixkosten' : 'Sparkonten') + " im Jahr " + fromYear + " vorhanden!");
-    return;
-  }
-  
-  // Initalisiere target year array falls nicht vorhanden
-  if (!user[category][toYear]) {
-    user[category][toYear] = [];
-  }
-  
-  // Kopiere alle Einträge
-  let copiedCount = 0;
-  
-  itemsToCopy.forEach(item => {
-    // Deep copy um zu vermeiden dass beide Jahre denselben Objekt referenzieren
-    const copiedItem = {
-      type: item.type,
-      category: item.category,
-      name: item.name,
-      betrag: item.betrag
-    };
-    user[category][toYear].push(copiedItem);
-    copiedCount++;
-  });
-  
-  saveAllData();
-  
-  // Aktualisiere Jahres-Selects
-  populateFixkostenYearSelect();
-  populateSparkontenYearSelect();
-  updateYearSettingDisplay();
-
-  
-  // Zeige Success Message
-  const typeLabel = category === 'fixkosten' ? 'Fixkosten' : 'Sparkonten';
-  showSuccessMessage(`✅ ${copiedCount} ${typeLabel} in ${toYear} übertragen!`);
-  
-  // Refresh Tab wenn aktuell sichtbar
-  if (currentYear === toYear) {
-    if (category === 'fixkosten') {
-      renderFixkosten();
-    }
-    if (category === 'sparkonten') {
-      renderSparkonten();
-    }
-  }
-}
-
-
 // ========================================
 // v4.0.9.4: DELETE ALL FUNCTIONS
 // ========================================
@@ -9847,9 +9824,11 @@ function deleteAllFixkostenConfirm() {
   const modal = document.getElementById("deleteAllConfirmModal");
   document.getElementById("deleteAllMessage").innerHTML = 
     `<strong>${count}</strong> Fixkosten von ${year} werden unwiederbringlich gelöscht!`;
+  fillDeleteAllScope('fixkosten', year);   // v4.22.0.3
   
   document.getElementById("deleteAllConfirmButton").onclick = () => {
-    executeDeleteAllFixkosten(year);
+    const scope = (document.getElementById("deleteAllScope") || {}).value || 'year';
+    executeDeleteAllFixkosten(year, scope);
     modal.style.display = "none";
   };
   
@@ -9869,9 +9848,11 @@ function deleteAllSparkontenConfirm() {
   const modal = document.getElementById("deleteAllConfirmModal");
   document.getElementById("deleteAllMessage").innerHTML = 
     `<strong>${count}</strong> Sparkonten von ${year} werden unwiederbringlich gelöscht!`;
+  fillDeleteAllScope('sparkonten', year);   // v4.22.0.3
   
   document.getElementById("deleteAllConfirmButton").onclick = () => {
-    executeDeleteAllSparkonten(year);
+    const scope = (document.getElementById("deleteAllScope") || {}).value || 'year';
+    executeDeleteAllSparkonten(year, scope);
     modal.style.display = "none";
   };
   
@@ -9882,18 +9863,58 @@ function closeDeleteAllConfirm() {
   document.getElementById("deleteAllConfirmModal").style.display = "none";
 }
 
-function executeDeleteAllFixkosten(year) {
-  allData.users[currentUser].fixkosten[year] = [];
-  saveAllData();
-  renderFixkosten();
-  showSuccessMessage("✅ Alle Fixkosten von " + year + " gelöscht!");
+// v4.22.0.3: Geltungsbereich beim Alle-Loeschen (nur sichtbar, wenn Reihen "ab Jahr" im Jahr vorkommen)
+function fillDeleteAllScope(kind, year) {
+  const box = document.getElementById('deleteAllScopeBox'), sel = document.getElementById('deleteAllScope');
+  if (!box || !sel) return;
+  const arr = (allData.users[currentUser][kind] || {})[year] || [];
+  sel.innerHTML = '';
+  if (arr.some(i => i && i.sid && i.scope === 'from')) {
+    [['year', 'Nur ' + year], ['from', 'Ab ' + year + ' (und alle folgenden Jahre)']].forEach(o => {
+      const op = document.createElement('option'); op.value = o[0]; op.textContent = o[1]; sel.appendChild(op);
+    });
+    sel.value = 'year';
+    box.style.display = 'block';
+    sel.setAttribute('data-year', year);
+  } else {
+    box.style.display = 'none';
+  }
+  updateDeleteAllScopeHint();
+}
+function updateDeleteAllScopeHint() {
+  const sel = document.getElementById('deleteAllScope'), hint = document.getElementById('deleteAllScopeHint');
+  if (!sel || !hint) return;
+  const y = sel.getAttribute('data-year') || '';
+  hint.textContent = sel.value === 'from'
+    ? 'Reihen enden mit ' + (parseInt(y) - 1) + '. Ab ' + y + ' sind sie in diesem und in allen folgenden Jahren weg, frühere Jahre bleiben unverändert.'
+    : 'Nur ' + y + ' wird geleert. Reihen laufen in den anderen Jahren weiter (auch in späteren, noch nicht geöffneten Jahren).';
+}
+function deleteAllInYear(kind, year, scope) {
+  const u = allData.users[currentUser];
+  const prev = currentYear;
+  currentYear = year;
+  try {
+    ensureSerienForYear(kind, year);
+    let guard = 0;
+    // Immer den ersten Eintrag der aktuellen Liste entfernen (serienDeleteItem ersetzt bei "ab Jahr" die Liste)
+    while (((u[kind] && u[kind][year]) || []).length && guard++ < 5000) serienDeleteItem(kind, 0, scope === 'from' ? 'from' : 'year');
+    if (!u[kind]) u[kind] = {};
+    if (!Array.isArray(u[kind][year])) u[kind][year] = [];
+  } finally { currentYear = prev; }
 }
 
-function executeDeleteAllSparkonten(year) {
-  allData.users[currentUser].sparkonten[year] = [];
+function executeDeleteAllFixkosten(year, scope) {
+  deleteAllInYear('fixkosten', year, scope);
+  saveAllData();
+  renderFixkosten();
+  showSuccessMessage("✅ Alle Fixkosten von " + year + (scope === 'from' ? " und folgenden Jahren" : "") + " gelöscht!");
+}
+
+function executeDeleteAllSparkonten(year, scope) {
+  deleteAllInYear('sparkonten', year, scope);
   saveAllData();
   renderSparkonten();
-  showSuccessMessage("✅ Alle Sparkonten von " + year + " gelöscht!");
+  showSuccessMessage("✅ Alle Sparkonten von " + year + (scope === 'from' ? " und folgenden Jahren" : "") + " gelöscht!");
 }
 
 // ============================================================
