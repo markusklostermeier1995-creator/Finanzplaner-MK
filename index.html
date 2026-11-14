@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Gehaltsplaner CB">
   <meta name="theme-color" content="#3B82F6">
-  <title>Gehaltsplaner Pro v4.23.0.1 - Option A (Option A: Tab-Lokalisiert)</title>
+  <title>Gehaltsplaner Pro v4.25.0 - Option A (Option A: Tab-Lokalisiert)</title>
   <script>
     // Async load Chart.js with fallback
     const script = document.createElement('script');
@@ -1460,6 +1460,64 @@ small { font-size: 12px; color: #999; }
     </div>
   </div>
 
+  <!-- v4.24.0: Posten-Fenster (jetzt aus der Budgetplanung erreichbar, darum ausserhalb der Tabs) -->
+<!-- Posten Löschen Modal -->
+  <div id="postenDeleteModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 99999; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 12px; padding: 1.5rem; width: 90%; max-width: 380px; max-height: 90vh; overflow-y: auto;">
+      <h3 style="margin: 0 0 0.75rem; font-size: 16px; color: #dc2626;">🗑️ Posten löschen?</h3>
+      <p style="font-size: 13px; color: #666; margin-bottom: 1rem;">Posten "<span id="postenDeleteName" style="font-weight: 600;"></span>" wirklich löschen?</p>
+      <!-- v4.25.0: Geltungsbereich beim Loeschen -->
+      <div style="margin-bottom: 1.25rem;">
+        <label style="font-size: 12px; font-weight: 600; color: #374151; display: block; margin-bottom: 0.4rem;">Löschen für</label>
+        <select id="postenDeleteScope" onchange="updatePostenDeleteHint()" style="width: 100%; padding: 10px 12px; border: 1.5px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box;"></select>
+        <p id="postenDeleteHint" style="font-size: 12px; color: #666; margin: 0.5rem 0 0 0; line-height: 1.5;"></p>
+      </div>
+      <div style="display: flex; gap: 0.75rem;">
+        <button onclick="confirmDeletePosten()" style="flex: 1; padding: 0.75rem; background: #dc2626; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer;">Löschen</button>
+        <button onclick="closePostenDeleteModal()" style="flex: 1; padding: 0.75rem; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; cursor: pointer;">Abbrechen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Posten Modal -->
+  <div id="postenModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 99999; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 12px; padding: 1.5rem; width: 90%; max-width: 380px; max-height: 90vh; overflow-y: auto;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+        <h3 id="postenModalTitle" style="margin: 0; font-size: 16px;">🆕 Neuer Posten</h3>
+        <button onclick="closePostenModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #666;">✕</button>
+      </div>
+      <div style="margin-bottom: 1.25rem;">
+        <label style="font-size: 12px; font-weight: 600; color: #374151; display: block; margin-bottom: 0.4rem;">Name</label>
+        <input type="text" id="postenModalName" placeholder="z.B. Miete" style="width: 100%; padding: 10px 12px; border: 1.5px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+      </div>
+      <!-- v4.25.0: Geltungsbereich (nur beim Neuanlegen) -->
+      <div id="postenScopeBox" style="margin-bottom: 1.25rem;">
+        <label style="font-size: 12px; font-weight: 600; color: #374151; display: block; margin-bottom: 0.4rem;">Gilt für</label>
+        <div style="display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.6rem;">
+          <button type="button" onclick="postenScopePreset('month')" style="padding: 5px 9px; font-size: 12px; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 6px; cursor: pointer; color: #374151;">Nur dieser Monat</button>
+          <button type="button" onclick="postenScopePreset('year')" style="padding: 5px 9px; font-size: 12px; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 6px; cursor: pointer; color: #374151;" id="postenPresetYear">Nur dieses Jahr</button>
+          <button type="button" onclick="postenScopePreset('from')" style="padding: 5px 9px; font-size: 12px; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 6px; cursor: pointer; color: #374151;">Ab diesem Monat</button>
+        </div>
+        <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem;">
+          <span style="font-size: 12px; color: #374151; width: 34px;">Von</span>
+          <select id="postenVonMonth" onchange="updatePostenScopeHint()" style="flex: 1; padding: 8px 10px; border: 1.5px solid #d1d5db; border-radius: 6px; font-size: 13px; box-sizing: border-box;"></select>
+          <select id="postenVonYear" onchange="updatePostenScopeHint()" style="width: 84px; padding: 8px 10px; border: 1.5px solid #d1d5db; border-radius: 6px; font-size: 13px; box-sizing: border-box;"></select>
+        </div>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <span style="font-size: 12px; color: #374151; width: 34px;">Bis</span>
+          <select id="postenBisMonth" onchange="updatePostenScopeHint()" style="flex: 1; padding: 8px 10px; border: 1.5px solid #d1d5db; border-radius: 6px; font-size: 13px; box-sizing: border-box;"></select>
+          <select id="postenBisYear" onchange="updatePostenScopeHint()" style="width: 84px; padding: 8px 10px; border: 1.5px solid #d1d5db; border-radius: 6px; font-size: 13px; box-sizing: border-box;"></select>
+        </div>
+        <p id="postenScopeHint" style="font-size: 12px; color: #666; margin: 0.6rem 0 0 0; line-height: 1.5;"></p>
+      </div>
+      <p id="postenRangeInfo" style="display: none; font-size: 12px; color: #666; margin: 0 0 1.25rem 0; line-height: 1.5;"></p>
+      <div style="display: flex; gap: 0.75rem;">
+        <button onclick="savePostenFromModal()" style="flex: 1; padding: 0.75rem; background: #3B82F6; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer;">Speichern</button>
+        <button onclick="closePostenModal()" style="flex: 1; padding: 0.75rem; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; cursor: pointer;">Abbrechen</button>
+      </div>
+    </div>
+  </div>
+
   <!-- v4.9.0: Kategorie-Modal (Budgetplanung) -->
   <div class="modal" id="katModal" style="z-index: 99997;" onclick="if (event.target === this) closeKatModal()">
     <div class="modal-content" style="max-width: 560px; width: 94%;">
@@ -1471,6 +1529,7 @@ small { font-size: 12px; color: #999; }
         <button onclick="closeKatModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; padding: 0; color: inherit; flex-shrink: 0;" aria-label="Schließen">✕</button>
       </div>
       <div id="katModalBody" oninput="updateKategorieCardTotals()"></div>
+      <div id="katPostenManage" style="margin-top: 1rem;"></div>
       <button onclick="closeKatModal()" class="btn-primary" style="width: 100%; margin-top: 1rem; padding: 0.75rem; font-size: 14px;">Fertig</button>
     </div>
   </div>
@@ -1482,7 +1541,7 @@ small { font-size: 12px; color: #999; }
         <p>Jahresplanung & Budgetierung deines Einkommens</p>
       </div>
       <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
-        <div class="version">v4.23.0.1</div>
+        <div class="version">v4.25.0</div>
         <div style="font-size: 10px; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.5px;">🔒 CLOSED BETA</div>
       </div>
     </div>
@@ -1940,7 +1999,7 @@ small { font-size: 12px; color: #999; }
     <!-- v4.6.6: KATEGORIEN TAB -->
     <div id="tab3" class="tab-content">
       <p style="font-size: 15px; font-weight: 600; margin-bottom: 1rem; color: #333;">🏷️ Kategorien verwalten</p>
-      <p style="font-size: 12px; color: #666; margin-bottom: 1.5rem;">Erstelle eigene Kategorien und lege fest ob sie zu <strong>Ausgaben</strong> oder <strong>Sparen</strong> zählen.</p>
+      <p style="font-size: 12px; color: #666; margin-bottom: 1.5rem;">Erstelle eigene Kategorien und lege fest ob sie zu <strong>Ausgaben</strong> oder <strong>Sparen</strong> zählen. Die Posten einer Kategorie legst du in der <strong>Budgetplanung</strong> an (Kategorie öffnen, dann "Posten hinzufügen").</p>
 
       <!-- Neue Kategorie Button -->
       <button onclick="openKategorieModal()" style="width: 100%; padding: 0.875rem; background: #3B82F6; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; margin-bottom: 1.5rem;">
@@ -1996,35 +2055,7 @@ small { font-size: 12px; color: #999; }
           </div>
         </div>
       </div>
-      <!-- Posten Löschen Modal -->
-      <div id="postenDeleteModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 99999; align-items: center; justify-content: center;">
-        <div style="background: white; border-radius: 12px; padding: 1.5rem; width: 90%; max-width: 380px;">
-          <h3 style="margin: 0 0 0.75rem; font-size: 16px; color: #dc2626;">🗑️ Posten löschen?</h3>
-          <p style="font-size: 13px; color: #666; margin-bottom: 1.25rem;">Posten "<span id="postenDeleteName" style="font-weight: 600;"></span>" wirklich löschen?</p>
-          <div style="display: flex; gap: 0.75rem;">
-            <button onclick="confirmDeletePosten()" style="flex: 1; padding: 0.75rem; background: #dc2626; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer;">Löschen</button>
-            <button onclick="closePostenDeleteModal()" style="flex: 1; padding: 0.75rem; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; cursor: pointer;">Abbrechen</button>
-          </div>
-        </div>
-      </div>
 
-      <!-- Posten Modal -->
-      <div id="postenModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 99999; align-items: center; justify-content: center;">
-        <div style="background: white; border-radius: 12px; padding: 1.5rem; width: 90%; max-width: 380px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
-            <h3 id="postenModalTitle" style="margin: 0; font-size: 16px;">🆕 Neuer Posten</h3>
-            <button onclick="closePostenModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #666;">✕</button>
-          </div>
-          <div style="margin-bottom: 1.25rem;">
-            <label style="font-size: 12px; font-weight: 600; color: #374151; display: block; margin-bottom: 0.4rem;">Name</label>
-            <input type="text" id="postenModalName" placeholder="z.B. Miete" style="width: 100%; padding: 10px 12px; border: 1.5px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
-          </div>
-          <div style="display: flex; gap: 0.75rem;">
-            <button onclick="savePostenFromModal()" style="flex: 1; padding: 0.75rem; background: #3B82F6; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer;">Speichern</button>
-            <button onclick="closePostenModal()" style="flex: 1; padding: 0.75rem; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; cursor: pointer;">Abbrechen</button>
-          </div>
-        </div>
-      </div>
     </div>
     <div id="tab4" class="tab-content">
       <div id="releaseNotesHost"></div>
@@ -2039,9 +2070,46 @@ small { font-size: 12px; color: #999; }
         </p>
       </div>
 
+      <!-- v4.25.0: FEATURE - GELTUNGSBEREICH FUER POSTEN -->
+      <div class="settings-card" style="background: #f0fdf4; border-color: #86efac; border-width: 3px;">
+        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">✨ v4.25.0 - Feature: Geltungsbereich für Posten (aktuell)</p>
+        <p style="font-size: 12px; color: #15803d; line-height: 1.6; margin: 0;">
+          <strong>Problem:</strong> Ein neuer Posten (z. B. "AXA" in Versicherungen, nur für Januar 2024 angelegt) erschien in allen Monaten und Jahren. Beim Löschen war er ebenfalls überall weg.<br>
+          <strong>Neu beim Anlegen:</strong> Im Fenster "Neuer Posten" steht "Gilt für" mit Von (Monat, Jahr) und Bis (Monat, Jahr oder "unbegrenzt"). Die Schnellwahl "Nur dieser Monat" (Standard), "Nur [Jahr]" und "Ab diesem Monat" füllt die Felder vor. Ein Hinweis zeigt, wofür der Posten gilt.<br>
+          <strong>Neu beim Löschen:</strong> Das Fenster fragt "Löschen für": Nur [Monat Jahr] (Standard), Nur [Jahr], Ab [Monat Jahr] (und alle folgenden Monate) oder In allen Monaten. Die Beträge des Postens in den betroffenen Monaten werden mit gelöscht, ein Hinweis nennt das vorher. "Ab" beendet den Posten mit dem Vormonat, frühere Monate bleiben unverändert.<br>
+          <strong>Anzeige:</strong> Ein Posten erscheint nur in den Monaten, für die er gilt, auch in Karten, Zählung und Hinweisen. Beim Kopieren aus einem anderen Monat werden nur Posten übernommen, die im Zielmonat gelten. Im Tab "Kategorien" steht der Zeitraum hinter dem Namen.<br>
+          <strong>Bestehende Posten:</strong> gelten unverändert in allen Monaten, bis du sie je Monat löschst. Gleicher Name in einer Kategorie ist erlaubt, wenn sich die Zeiträume nicht überschneiden.<br>
+          <strong>Grenzen:</strong> Der Zeitraum eines vorhandenen Postens lässt sich nicht nachträglich ändern (löschen und neu anlegen). Das Umbenennen geht weiterhin, die Beträge werden mitgenommen.<br>
+          <strong>Was testen:</strong> Budgetplanung, Januar 2024, Kategorie öffnen, "Posten hinzufügen", Name "AXA", "Nur dieser Monat": AXA erscheint nur im Januar 2024. Februar 2024 ansehen: kein AXA. Löschen-Fenster testen. Dunkelmodus ansehen.
+        </p>
+      </div>
+
+      <!-- v4.24.0.1: BUGFIX - UMBENENNEN VERLIERT BETRAEGE -->
+      <div class="settings-card" style="background: #fee2e2; border-color: #fca5a5;">
+        <p style="font-size: 13px; font-weight: 700; color: #991b1b; margin-bottom: 0.5rem;">🐛 v4.24.0.1 - Bugfix: Umbenennen verliert keine Beträge mehr</p>
+        <p style="font-size: 12px; color: #b91c1c; line-height: 1.6; margin: 0;">
+          <strong>Problem:</strong> Beträge der Budgetplanung sind unter dem Namen von Kategorie und Posten gespeichert. Wurde ein Posten oder eine Kategorie umbenannt, blieben die Beträge unter dem alten Namen liegen und das umbenannte Feld erschien leer. Außerdem konnten zwei Posten mit gleichem Namen in einer Kategorie angelegt werden und teilten sich dann ein Eingabefeld.<br>
+          <strong>Fix:</strong> Beim Umbenennen eines Postens oder einer Kategorie werden die Beträge in allen Monaten und Jahren mitgenommen. Ein Posten mit gleichem Namen (auch bei nur anderer Groß-/Kleinschreibung oder Sonderzeichen) wird in derselben Kategorie nicht mehr angelegt, es erscheint ein Hinweis.<br>
+          <strong>Unverändert:</strong> Fixkosten, Sparkonten, alle Berechnungen, bereits vorhandene Daten. Bereits früher "verlorene" Beträge werden nicht rückwirkend zurückgeholt.<br>
+          <strong>Was testen:</strong> Einen Posten mit Betrag umbenennen: der Betrag bleibt sichtbar, auch in anderen Monaten. Eine Kategorie umbenennen: Beträge bleiben. Einen Posten mit schon vorhandenem Namen anlegen: Hinweis.
+        </p>
+      </div>
+
+      <!-- v4.24.0: UI - POSTEN IN DER BUDGETPLANUNG -->
+      <div class="settings-card" style="background: #fff7ed; border-color: #fed7aa;">
+        <p style="font-size: 13px; font-weight: 700; color: #9a3412; margin-bottom: 0.5rem;">🧩 v4.24.0 - UI: Posten werden in der Budgetplanung verwaltet</p>
+        <p style="font-size: 12px; color: #c2410c; line-height: 1.6; margin: 0;">
+          <strong>Hintergrund:</strong> Posten sind die Budgetzeilen mit Monatsbeträgen (Sonderausgaben außerhalb von Fixkosten und Sparkonten). Sie gehören deshalb in die Budgetplanung und nicht in den Tab "Kategorien".<br>
+          <strong>Neu:</strong> Im Fenster einer Kategorie in der Budgetplanung gibt es unten "➕ Posten hinzufügen" und den Aufklapper "Posten umbenennen oder löschen". Nach dem Speichern, Löschen oder Abbrechen bist du wieder im Kategorie-Fenster.<br>
+          <strong>Kategorien-Tab:</strong> verwaltet nur noch Kategorien (Name, Ausgaben/Sparen, Bearbeiten, Löschen) und zeigt pro Kategorie die Anzahl und Namen der Posten. Die Posten-Liste mit Aufklappen ist entfallen.<br>
+          <strong>Unverändert:</strong> Daten, Beträge, Fixkosten, Sparkonten, Berechnungen. Dieselben Fenster zum Anlegen, Umbenennen und Löschen eines Postens, nur an neuer Stelle.<br>
+          <strong>Was testen:</strong> Budgetplanung, Kategorie öffnen, "Posten hinzufügen": Name eingeben, speichern, der Posten erscheint als Feld. Umbenennen und Löschen über den Aufklapper. Tab "Kategorien": keine Posten-Buttons mehr. Dunkelmodus ansehen.
+        </p>
+      </div>
+
       <!-- v4.23.0.1: UI - ANGEMELDETER BENUTZER SICHTBAR -->
-      <div class="settings-card" style="background: #fff7ed; border-color: #fed7aa; border-width: 3px;">
-        <p style="font-size: 13px; font-weight: 700; color: #9a3412; margin-bottom: 0.5rem;">👤 v4.23.0.1 - UI: Angemeldeter Benutzer sichtbar (aktuell)</p>
+      <div class="settings-card" style="background: #fff7ed; border-color: #fed7aa;">
+        <p style="font-size: 13px; font-weight: 700; color: #9a3412; margin-bottom: 0.5rem;">👤 v4.23.0.1 - UI: Angemeldeter Benutzer sichtbar</p>
         <p style="font-size: 12px; color: #c2410c; line-height: 1.6; margin: 0;">
           <strong>Problem:</strong> Mit dem neuen Hauptmenü (v4.23.0) stand der Name des angemeldeten Benutzers nur noch in der Benutzerverwaltung. Im Budgetplaner war nicht erkennbar, wer angemeldet ist.<br>
           <strong>Fix:</strong> Avatar und Name stehen jetzt rechts in der Kopfzeile (auf jeder Seite) und im geöffneten Menü oben als "Angemeldet als". Ohne angemeldeten Benutzer werden sie ausgeblendet. Der Name wird bei Benutzerwechsel, Bearbeiten und Löschen aktualisiert.<br>
@@ -5917,46 +5985,56 @@ function renderKategorienTab() {
     const tagLabel = kat.tag === 'sparen' ? '💰 Sparen' : '📤 Ausgaben';
     const postenCount = kat.posten.length;
 
-    const postenHtml = postenCount > 0
-      ? kat.posten.map(p => `
-          <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: #f9fafb; border-radius: 6px; margin-bottom: 4px;">
-            <span style="font-size: 13px; color: #374151;">${p.name}</span>
-            <div style="display: flex; gap: 4px;">
-              <button onclick="openPostenModal('${kat.id}','${p.id}')" style="padding: 4px 9px; font-size: 11px; background: white; border: 1px solid #d1d5db; border-radius: 4px; cursor: pointer;">✏️</button>
-              <button onclick="deletePosten('${kat.id}','${p.id}')" style="padding: 4px 9px; font-size: 11px; background: #fee2e2; border: 1px solid #fca5a5; border-radius: 4px; cursor: pointer;">🗑️</button>
-            </div>
-          </div>`).join('')
-      : `<p style="font-size: 12px; color: #9ca3af; margin: 0.75rem 0; text-align: center;">Noch keine Posten — füge den ersten hinzu.</p>`;
+    const postenNames = postenCount > 0 ? kat.posten.map(p => esc(p.name) + (postenHasRange(p) ? ' (' + esc(postenRangeText(p)) + ')' : '')).join(', ') : 'Noch keine Posten (in der Budgetplanung anlegen)';
 
     return `
-      <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; margin-bottom: 0.5rem; overflow: hidden;">
-
-        <!-- Accordion Header -->
-        <div onclick="toggleKategorieAccordion('${kat.id}')"
-          style="display: flex; justify-content: space-between; align-items: center; padding: 0.875rem 1rem; cursor: pointer; user-select: none;">
-          <div style="display: flex; align-items: center; gap: 0.75rem;">
-            <span style="font-size: 14px; font-weight: 600; color: #111827;">${kat.name}</span>
+      <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; margin-bottom: 0.5rem; padding: 0.875rem 1rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem;">
+          <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; min-width: 0;">
+            <span style="font-size: 14px; font-weight: 600; color: #111827;">${esc(kat.name)}</span>
             <span style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; background: ${tagBg}; color: ${tagColor};">${tagLabel}</span>
             <span style="font-size: 11px; color: #9ca3af;">${postenCount} Posten</span>
           </div>
-          <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <button onclick="event.stopPropagation(); openKategorieModal('${kat.id}')" style="padding: 4px 9px; font-size: 11px; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 5px; cursor: pointer; color: #374151;">✏️</button>
-            <button onclick="event.stopPropagation(); openKategorieDeleteModal('${kat.id}')" style="padding: 4px 9px; font-size: 11px; background: #fee2e2; border: 1px solid #fca5a5; border-radius: 5px; cursor: pointer; color: #991b1b;">🗑️</button>
-            <span id="accordion-arrow-${kat.id}" style="font-size: 12px; color: #9ca3af; transition: transform 0.2s;">▼</span>
+          <div style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">
+            <button onclick="openKategorieModal('${kat.id}')" style="padding: 4px 9px; font-size: 11px; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 5px; cursor: pointer; color: #374151;">✏️ Bearbeiten</button>
+            <button onclick="openKategorieDeleteModal('${kat.id}')" style="padding: 4px 9px; font-size: 11px; background: #fee2e2; border: 1px solid #fca5a5; border-radius: 5px; cursor: pointer; color: #991b1b;">🗑️</button>
           </div>
         </div>
-
-        <!-- Accordion Content (standardmäßig geschlossen) -->
-        <div id="accordion-body-${kat.id}" style="display: none; border-top: 1px solid #f3f4f6; padding: 0.75rem 1rem 1rem;">
-          ${postenHtml}
-          <button onclick="openPostenModal('${kat.id}', null)"
-            style="width: 100%; padding: 7px; font-size: 12px; background: #f0fdf4; border: 1px dashed #86efac; border-radius: 6px; cursor: pointer; color: #166534; font-weight: 500; margin-top: 0.5rem;">
-            + Posten hinzufügen
-          </button>
-        </div>
+        <p style="font-size: 11px; color: #9ca3af; margin: 0.5rem 0 0 0;">${postenNames}</p>
       </div>`;
   }).join('');
 }
+
+// v4.24.0.1: Betraege liegen unter dem Namen von Kategorie/Posten. Beim Umbenennen alle Monate und Jahre mitnehmen.
+function renameBudgetData(user, katName, oldName, newName, activeIdxFn) {
+  if (oldName === newName) return;
+  Object.keys(user.data || {}).forEach(y => {
+    Object.keys(user.data[y] || {}).forEach(m => {
+      if (activeIdxFn) { const mi = MONTHS.indexOf(m); if (mi >= 0 && !activeIdxFn(parseInt(y) * 12 + mi)) return; }   // v4.25.0: nur Monate dieses Postens
+      const km = user.data[y][m] && user.data[y][m][katName];
+      if (km && typeof km === 'object' && Object.prototype.hasOwnProperty.call(km, oldName)) {
+        if (!Object.prototype.hasOwnProperty.call(km, newName)) km[newName] = km[oldName];
+        delete km[oldName];
+      }
+    });
+  });
+}
+function renameKategorieData(user, oldKat, newKat) {
+  if (oldKat === newKat) return;
+  Object.keys(user.data || {}).forEach(y => {
+    Object.keys(user.data[y] || {}).forEach(m => {
+      const md = user.data[y][m];
+      if (md && typeof md === 'object' && md[oldKat] && typeof md[oldKat] === 'object') {
+        if (!md[newKat]) md[newKat] = md[oldKat];
+        else Object.keys(md[oldKat]).forEach(k => { if (!Object.prototype.hasOwnProperty.call(md[newKat], k)) md[newKat][k] = md[oldKat][k]; });
+        delete md[oldKat];
+      }
+    });
+  });
+}
+function postenKey(n) { return String(n).replace(/[^a-zA-Z0-9]/g, '').toLowerCase(); }
+
+function esc(t) { return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 
 function toggleKategorieAccordion(katId) {
   const body  = document.getElementById('accordion-body-' + katId);
@@ -6013,6 +6091,7 @@ function saveKategorieFromModal() {
 
       // v4.7.2.1: Rename in Fixkosten + Sparkonten über alle Jahre propagieren
       if (oldName !== name) {
+        renameKategorieData(user, oldName, name);   // v4.24.0.1: Betraege der Budgetplanung mitnehmen
         Object.keys(user.fixkosten || {}).forEach(year => {
           (user.fixkosten[year] || []).forEach(item => {
             if (item.category === oldName) item.category = name;
@@ -6102,22 +6181,137 @@ function confirmDeleteKategorie() {
 // ---- POSTEN VERWALTUNG ----
 let currentPostenKatId = null;
 let currentPostenId = null;
+let postenReturnKatIdx = null;   // v4.24.0: Kategorie der Budgetplanung, die danach wieder geoeffnet wird
+let postenDeleteCtx = null;      // v4.25.0: Monat/Jahr, in dem geloescht wurde
 
-function openPostenModal(katId, postenId = null) {
+// v4.25.0: Geltungsbereich von Posten. von/bis als 'YYYY-MM' (fehlt = unbegrenzt), aus = einzelne ausgenommene Monate.
+// Posten ohne diese Felder (aeltere Daten) gelten wie bisher in allen Monaten.
+const POSTEN_MIN_IDX = 2000 * 12, POSTEN_MAX_IDX = 2100 * 12 + 11;
+function ymIdx(str) {
+  if (!str) return null;
+  const a = String(str).split('-'); const y = parseInt(a[0]), m = parseInt(a[1]) - 1;
+  return (isNaN(y) || isNaN(m)) ? null : y * 12 + m;
+}
+function ymStr(y, m) { return y + '-' + String(m + 1).padStart(2, '0'); }
+function postenActiveIdx(p, k) {
+  const v = ymIdx(p.von), b = ymIdx(p.bis);
+  if (v !== null && k < v) return false;
+  if (b !== null && k > b) return false;
+  if (p.aus && p.aus.length && p.aus.some(x => ymIdx(x) === k)) return false;
+  return true;
+}
+function postenActive(p, y, m) { return postenActiveIdx(p, y * 12 + m); }
+function activePosten(kat, y, m) {
+  if (y === undefined) { y = currentYear; m = currentMonth; }
+  return kat.posten.filter(p => postenActive(p, y, m));
+}
+function postenOverlap(a, b) {
+  const lo = Math.max(POSTEN_MIN_IDX, ymIdx(a.von) === null ? -1e9 : ymIdx(a.von), ymIdx(b.von) === null ? -1e9 : ymIdx(b.von));
+  const hi = Math.min(POSTEN_MAX_IDX, ymIdx(a.bis) === null ? 1e9 : ymIdx(a.bis), ymIdx(b.bis) === null ? 1e9 : ymIdx(b.bis));
+  for (let k = lo; k <= hi; k++) if (postenActiveIdx(a, k) && postenActiveIdx(b, k)) return true;
+  return false;
+}
+function postenRangeText(p) {
+  const f = x => { const i = ymIdx(x); return MONTHS[i % 12] + ' ' + Math.floor(i / 12); };
+  let t;
+  if (p.von && p.bis) t = (p.von === p.bis) ? f(p.von) : f(p.von) + ' bis ' + f(p.bis);
+  else if (p.von) t = 'ab ' + f(p.von);
+  else if (p.bis) t = 'bis ' + f(p.bis);
+  else t = 'alle Monate';
+  if (p.aus && p.aus.length) t += ', mit Lücken';
+  return t;
+}
+function postenHasRange(p) { return !!(p.von || p.bis || (p.aus && p.aus.length)); }
+function normalizePosten(p) {
+  if (!p.aus) return;
+  const lo = ymIdx(p.von), hi = ymIdx(p.bis), seen = {};
+  p.aus = p.aus.filter(x => { const i = ymIdx(x); if (i === null || seen[x]) return false; seen[x] = 1; return (lo === null || i >= lo) && (hi === null || i <= hi); });
+  if (!p.aus.length) delete p.aus;
+}
+function postenIsEmpty(p) {
+  const lo = ymIdx(p.von), hi = ymIdx(p.bis);
+  if (lo === null || hi === null) return false;
+  if (lo > hi) return true;
+  for (let k = lo; k <= hi && k - lo < 2400; k++) if (postenActiveIdx(p, k)) return false;
+  return true;
+}
+// Betraege eines Postens in den Monaten loeschen, in denen er (vor der Aenderung) galt und pred(k) zutrifft
+function deletePostenAmounts(user, kat, p, pred) {
+  Object.keys(user.data || {}).forEach(y => {
+    Object.keys(user.data[y] || {}).forEach(mk => {
+      const mi = MONTHS.indexOf(mk); if (mi < 0) return;
+      const k = parseInt(y) * 12 + mi;
+      if (!pred(k) || !postenActiveIdx(p, k)) return;
+      const km = user.data[y][mk] && user.data[y][mk][kat.name];
+      if (km && typeof km === 'object') delete km[p.name];
+    });
+  });
+}
+
+function fillPostenScopeSelects() {
+  const vm = document.getElementById('postenVonMonth'), bm = document.getElementById('postenBisMonth');
+  const vy = document.getElementById('postenVonYear'), by = document.getElementById('postenBisYear');
+  if (!vm || vm.options.length) return;
+  MONTHS.forEach((m, i) => { vm.add(new Option(m, i)); bm.add(new Option(m, i)); });
+  bm.insertBefore(new Option('unbegrenzt', ''), bm.firstChild);
+  const years = []; for (let y = Math.min(2024, currentYear); y <= Math.max(2050, currentYear); y++) years.push(y);   // wie die Jahresauswahl der App
+  years.forEach(y => { vy.add(new Option(y, y)); by.add(new Option(y, y)); });
+}
+function initPostenScope() {
+  fillPostenScopeSelects();
+  document.getElementById('postenPresetYear').textContent = 'Nur ' + currentYear;
+  postenScopePreset('month');
+}
+function postenScopePreset(kind) {
+  const set = (id, v) => { document.getElementById(id).value = String(v); };
+  if (kind === 'year') { set('postenVonMonth', 0); set('postenVonYear', currentYear); set('postenBisMonth', 11); set('postenBisYear', currentYear); }
+  else if (kind === 'from') { set('postenVonMonth', currentMonth); set('postenVonYear', currentYear); set('postenBisMonth', ''); set('postenBisYear', currentYear); }
+  else { set('postenVonMonth', currentMonth); set('postenVonYear', currentYear); set('postenBisMonth', currentMonth); set('postenBisYear', currentYear); }
+  updatePostenScopeHint();
+}
+function readPostenScope() {
+  const g = id => document.getElementById(id).value;
+  const von = ymStr(parseInt(g('postenVonYear')), parseInt(g('postenVonMonth')));
+  const bis = g('postenBisMonth') === '' ? null : ymStr(parseInt(g('postenBisYear')), parseInt(g('postenBisMonth')));
+  if (bis && ymIdx(bis) < ymIdx(von)) return { error: 'Das Ende liegt vor dem Beginn. Bitte den Zeitraum korrigieren.' };
+  return { von, bis };
+}
+function updatePostenScopeHint() {
+  const hint = document.getElementById('postenScopeHint');
+  const by = document.getElementById('postenBisYear');
+  if (!hint) return;
+  if (by) by.disabled = document.getElementById('postenBisMonth').value === '';
+  const sc = readPostenScope();
+  if (sc.error) { hint.textContent = sc.error; return; }
+  const o = { von: sc.von }; if (sc.bis) o.bis = sc.bis;
+  const n = sc.bis ? (ymIdx(sc.bis) - ymIdx(sc.von) + 1) : 0;
+  hint.textContent = 'Gilt: ' + postenRangeText(o) + (n ? ' (' + n + (n === 1 ? ' Monat' : ' Monate') + ')' : '') + '. In anderen Monaten erscheint der Posten nicht.';
+}
+
+function openPostenModal(katId, postenId = null, returnKatIdx = null) {
   currentPostenKatId = katId;
   currentPostenId = postenId;
+  postenReturnKatIdx = returnKatIdx;
   const modal = document.getElementById('postenModal');
   const title = document.getElementById('postenModalTitle');
   const nameInput = document.getElementById('postenModalName');
+  const scopeBox = document.getElementById('postenScopeBox');
+  const info = document.getElementById('postenRangeInfo');
 
   if (postenId) {
     const kat = getKategorien().find(k => k.id === katId);
     const posten = kat?.posten.find(p => p.id === postenId);
     title.textContent = '✏️ Posten bearbeiten';
     nameInput.value = posten?.name || '';
+    scopeBox.style.display = 'none';
+    info.style.display = 'block';
+    info.textContent = 'Gilt: ' + (posten ? postenRangeText(posten) : '') + '. Der Zeitraum lässt sich nicht ändern. Dafür den Posten löschen und neu anlegen.';
   } else {
     title.textContent = '🆕 Neuer Posten';
     nameInput.value = '';
+    scopeBox.style.display = 'block';
+    info.style.display = 'none';
+    initPostenScope();
   }
 
   modal.style.display = 'flex';
@@ -6128,6 +6322,47 @@ function closePostenModal() {
   document.getElementById('postenModal').style.display = 'none';
   currentPostenKatId = null;
   currentPostenId = null;
+  // v4.24.0: Abbrechen fuehrt zurueck in das Kategorie-Fenster der Budgetplanung
+  const ret = postenReturnKatIdx; postenReturnKatIdx = null;
+  if (ret !== null) { try { openKatModal(ret); } catch (e) {} }
+}
+
+// v4.24.0: Aus dem Kategorie-Fenster der Budgetplanung heraus
+function katAddPosten() { katPostenAction('add'); }
+function katEditPosten(pid) { katPostenAction('edit', pid); }
+function katDeletePosten(pid) { katPostenAction('del', pid); }
+function katPostenAction(kind, pid) {
+  if (activeKatIdx === null) return;
+  const idx = activeKatIdx;
+  const kat = getKategorien()[idx];
+  if (!kat) return;
+  closeKatModal();   // Eingaben sichern, Felder zurueck in die Card
+  if (kind === 'add') openPostenModal(kat.id, null, idx);
+  else if (kind === 'edit') openPostenModal(kat.id, pid, idx);
+  else { deletePosten(kat.id, pid); postenReturnKatIdx = idx; }
+}
+function renderKatPostenManage(idx) {
+  const host = document.getElementById('katPostenManage');
+  if (!host) return;
+  const kat = getKategorien()[idx];
+  if (!kat) { host.innerHTML = ''; return; }
+  const list = activePosten(kat);   // v4.25.0: nur Posten, die in diesem Monat gelten
+  let html = `<button onclick="katAddPosten()" style="width: 100%; padding: 7px; font-size: 12px; background: #f0fdf4; border: 1px dashed #86efac; border-radius: 6px; cursor: pointer; color: #166534; font-weight: 500;">➕ Posten hinzufügen</button>`;
+  if (list.length) {
+    html += `<details style="margin-top: 0.5rem;"><summary style="font-size: 12px; cursor: pointer;">Posten umbenennen oder löschen</summary><div style="margin-top: 0.5rem;">` +
+      list.map(pp => `
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: #f9fafb; border-radius: 6px; margin-bottom: 4px;">
+          <div style="min-width: 0;">
+            <span style="font-size: 13px; color: #374151;">${esc(pp.name)}</span>
+            ${postenHasRange(pp) ? `<div style="font-size: 11px; color: #9ca3af;">${esc(postenRangeText(pp))}</div>` : ''}
+          </div>
+          <div style="display: flex; gap: 4px; flex-shrink: 0;">
+            <button onclick="katEditPosten('${pp.id}')" style="padding: 4px 9px; font-size: 11px; background: white; border: 1px solid #d1d5db; border-radius: 4px; cursor: pointer;">✏️</button>
+            <button onclick="katDeletePosten('${pp.id}')" style="padding: 4px 9px; font-size: 11px; background: #fee2e2; border: 1px solid #fca5a5; border-radius: 4px; cursor: pointer;">🗑️</button>
+          </div>
+        </div>`).join('') + `</div></details>`;
+  }
+  host.innerHTML = html;
 }
 
 function savePostenFromModal() {
@@ -6138,49 +6373,110 @@ function savePostenFromModal() {
   const kat = user.kategorien.find(k => k.id === currentPostenKatId);
   if (!kat) return;
 
+  const dupKey = postenKey(name);
+  const conflictMsg = 'Einen Posten mit diesem Namen gibt es in dieser Kategorie im selben Zeitraum schon. Bitte einen anderen Namen oder Zeitraum wählen.';
+
   if (currentPostenId) {
-    // Bearbeiten
+    // Bearbeiten (nur Name)
     const posten = kat.posten.find(p => p.id === currentPostenId);
-    if (posten) posten.name = name;
+    if (posten) {
+      // v4.24.0.1 + v4.25.0: gleicher Name ist nur erlaubt, wenn sich die Zeitraeume nicht ueberschneiden
+      if (kat.posten.some(p => p.id !== posten.id && postenKey(p.name) === dupKey && postenOverlap(p, posten))) { alert(conflictMsg); return; }
+      const oldName = posten.name;
+      renameBudgetData(user, kat.name, oldName, name, k => postenActiveIdx(posten, k));   // v4.24.0.1: Betraege mitnehmen
+      posten.name = name;
+    }
   } else {
-    // Neu
-    kat.posten.push({ id: generateId(), name });
+    // Neu, mit Geltungsbereich
+    const sc = readPostenScope();
+    if (sc.error) { alert(sc.error); return; }
+    const neu = { id: generateId(), name, von: sc.von };
+    if (sc.bis) neu.bis = sc.bis;
+    if (kat.posten.some(p => postenKey(p.name) === dupKey && postenOverlap(p, neu))) { alert(conflictMsg); return; }
+    kat.posten.push(neu);
   }
 
   saveAllData();
-  const katIdToReopen = currentPostenKatId; // v4.6.9.9: vor closeModal sichern!
+  const ret = postenReturnKatIdx; postenReturnKatIdx = null;   // v4.24.0: vor closeModal sichern
   closePostenModal();
   renderKategorienTab();
   inputsDirty = true; // v4.7.3: Posten geändert → Tab 0 neu rendern
-  toggleKategorieAccordion(katIdToReopen);
+  renderInputs();     // v4.24.0: Budgetplanung sofort aktualisieren
+  if (ret !== null) { try { openKatModal(ret); } catch (e) {} }
 }
 
 function deletePosten(katId, postenId) {
   currentPostenKatId = katId;
   currentPostenId = postenId;
+  postenDeleteCtx = { y: currentYear, m: currentMonth };
   const kat = getKategorien().find(k => k.id === katId);
   const posten = kat?.posten.find(p => p.id === postenId);
   document.getElementById('postenDeleteName').textContent = posten?.name || '';
+  const sel = document.getElementById('postenDeleteScope');
+  const mt = MONTHS[currentMonth] + ' ' + currentYear;
+  sel.innerHTML = '';
+  [['month', 'Nur ' + mt], ['year', 'Nur ' + currentYear], ['from', 'Ab ' + mt + ' (und alle folgenden Monate)'], ['all', 'In allen Monaten']]
+    .forEach(o => sel.add(new Option(o[1], o[0])));
+  sel.value = 'month';
+  updatePostenDeleteHint();
   document.getElementById('postenDeleteModal').style.display = 'flex';
+}
+function updatePostenDeleteHint() {
+  const sel = document.getElementById('postenDeleteScope'), hint = document.getElementById('postenDeleteHint');
+  if (!sel || !hint) return;
+  const mt = MONTHS[currentMonth] + ' ' + currentYear;
+  const t = {
+    month: 'Der Posten fehlt nur im ' + mt + '. Seine Beträge in diesem Monat werden gelöscht, alle anderen Monate bleiben unverändert.',
+    year: 'Der Posten fehlt in allen Monaten von ' + currentYear + '. Seine Beträge in diesem Jahr werden gelöscht, andere Jahre bleiben unverändert.',
+    from: 'Der Posten endet mit dem Vormonat. Seine Beträge ab ' + mt + ' werden gelöscht, frühere Monate bleiben unverändert.',
+    all: 'Der Posten und alle seine Beträge sind in allen Monaten und Jahren weg.'
+  };
+  hint.textContent = t[sel.value] || '';
 }
 
 function closePostenDeleteModal() {
   document.getElementById('postenDeleteModal').style.display = 'none';
   currentPostenKatId = null;
   currentPostenId = null;
+  postenDeleteCtx = null;
+  const ret = postenReturnKatIdx; postenReturnKatIdx = null;   // v4.24.0: zurueck in die Budgetplanung
+  if (ret !== null) { try { openKatModal(ret); } catch (e) {} }
 }
 
 function confirmDeletePosten() {
   const user = allData.users[currentUser];
   const kat = user.kategorien.find(k => k.id === currentPostenKatId);
-  if (kat) kat.posten = kat.posten.filter(p => p.id !== currentPostenId);
-  const katId = currentPostenKatId; // vor closeModal sichern
+  const p = kat ? kat.posten.find(x => x.id === currentPostenId) : null;
+  if (kat && p) {
+    const ctx = postenDeleteCtx || { y: currentYear, m: currentMonth };
+    const k0 = ctx.y * 12 + ctx.m;
+    const scope = (document.getElementById('postenDeleteScope') || {}).value || 'month';
+    if (scope === 'all') {
+      deletePostenAmounts(user, kat, p, () => true);
+      kat.posten = kat.posten.filter(x => x.id !== p.id);
+    } else {
+      if (scope === 'month') {
+        deletePostenAmounts(user, kat, p, k => k === k0);
+        p.aus = (p.aus || []).concat(ymStr(ctx.y, ctx.m));
+      } else if (scope === 'year') {
+        deletePostenAmounts(user, kat, p, k => Math.floor(k / 12) === ctx.y);
+        for (let mm = 0; mm < 12; mm++) p.aus = (p.aus || []).concat(ymStr(ctx.y, mm));
+      } else {   // from
+        deletePostenAmounts(user, kat, p, k => k >= k0);
+        const nb = k0 - 1;
+        if (ymIdx(p.bis) === null || ymIdx(p.bis) > nb) p.bis = ymStr(Math.floor(nb / 12), ((nb % 12) + 12) % 12);
+      }
+      normalizePosten(p);
+      if (postenIsEmpty(p)) kat.posten = kat.posten.filter(x => x.id !== p.id);
+    }
+  }
   saveAllData();
+  const ret = postenReturnKatIdx; postenReturnKatIdx = null;   // v4.24.0: vor closeModal sichern
   closePostenDeleteModal();
   renderKategorienTab();
   inputsDirty = true; // v4.7.3: Posten gelöscht → Tab 0 neu rendern
-  // v4.6.9.8: Kategorie nach Render wieder aufklappen
-  toggleKategorieAccordion(katId);
+  renderInputs();     // v4.24.0: Budgetplanung sofort aktualisieren
+  if (ret !== null) { try { openKatModal(ret); } catch (e) {} }
 }
 
 function initUsers() {
@@ -6919,8 +7215,8 @@ function renderInputs() {
       const catName = kat.name;
       let subHtml = '';
       
-      // Render Posten der Kategorie
-      kat.posten.forEach(posten => {
+      // Render Posten der Kategorie (v4.25.0: nur Posten, die in diesem Monat gelten)
+      activePosten(kat).forEach(posten => {
         const subcat = posten.name;
         const value = monthData[catName] && monthData[catName][subcat] ? monthData[catName][subcat] : '';
         const inputId = (catName + '_' + subcat).replace(/[^a-zA-Z0-9]/g, '');
@@ -6965,7 +7261,7 @@ function renderInputs() {
 
     // v4.9.0: Card→Modal — kompakte Card (Name + Summe); die Eingabefelder bleiben versteckt im DOM
     // (IDs, inputCache, updateSummary und saveMonth laufen unverändert) und werden beim Klick ins Modal verschoben
-    const postenCount = kat.posten.length + categoryFixkosten.length + categorySparkonten.length;
+    const postenCount = activePosten(kat).length + categoryFixkosten.length + categorySparkonten.length;
     html += `<div class="category-section kat-card" data-kat="${katIdx}" onclick="openKatModal(${katIdx})" role="button" tabindex="0">
       <div class="kat-card-main">
         <div class="kat-card-name">${catName}</div>
@@ -7069,11 +7365,12 @@ function openKatModal(idx) {
       const hint = document.createElement('p');
       hint.id = 'katModalEmpty';
       hint.style.cssText = 'font-size: 12px; opacity: 0.7; margin: 0.5rem 0;';
-      hint.textContent = 'In dieser Kategorie gibt es noch keine Posten. Du kannst sie im Tab "Kategorien" hinzufügen.';
+      hint.textContent = 'Für diesen Monat gibt es in dieser Kategorie noch keine Posten. Füge einen unten mit "Posten hinzufügen" hinzu.';
       body.appendChild(hint);
     }
 
     activeKatIdx = idx;
+    renderKatPostenManage(idx);   // v4.24.0
     updateKategorieCardTotals();
     document.getElementById('katModal').classList.add('active');
   } catch (e) {
@@ -7095,6 +7392,7 @@ function closeKatModal() {
     activeKatIdx = null;
     const body = document.getElementById('katModalBody');
     if (body) body.innerHTML = '';
+    const pm = document.getElementById('katPostenManage'); if (pm) pm.innerHTML = '';   // v4.24.0
     document.getElementById('katModal').classList.remove('active');
     updateSummary();
     updateKategorieCardTotals();
@@ -9549,7 +9847,7 @@ function saveMonth() {
     // v4.6.8: Fallback nutzt getKategorien() statt hardcodierter CATEGORIES
     getKategorien().forEach(kat => {
       monthData[kat.name] = {};
-      kat.posten.forEach(posten => {
+      activePosten(kat).forEach(posten => {
         const inputId = (kat.name + '_' + posten.name).replace(/[^a-zA-Z0-9]/g, '');
         const el = document.getElementById(inputId);
         monthData[kat.name][posten.name] = el ? (parseFloat(el.value) || 0) : 0;
@@ -9571,7 +9869,7 @@ function monthHasManualAmounts(year, monthIdx) {
   const u = allData.users[currentUser];
   const md = ((u.data[year] || {})[MONTHS[monthIdx]]) || null;
   if (!md) return false;
-  return getKategorien().some(kat => kat.posten.some(p => md[kat.name] && parseFloat(md[kat.name][p.name]) > 0));
+  return getKategorien().some(kat => activePosten(kat, year, monthIdx).some(p => md[kat.name] && parseFloat(md[kat.name][p.name]) > 0));
 }
 function prevMonthOf(year, monthIdx) {
   return monthIdx === 0 ? { year: year - 1, month: 11 } : { year: year, month: monthIdx - 1 };
@@ -9586,7 +9884,7 @@ function updateEmptyMonthHint() {
   try {
     const wrap = document.getElementById('clearMonthWrap');   // v4.22.0.1: "Monat leeren" nur bei Monaten mit Betraegen
     if (wrap) wrap.style.display = monthHasManualAmounts(currentYear, currentMonth) ? '' : 'none';
-    const hasPosten = getKategorien().some(k => k.posten.length > 0);
+    const hasPosten = getKategorien().some(k => activePosten(k).length > 0);
     if (!hasPosten || monthHasManualAmounts(currentYear, currentMonth) || !anyOtherMonthHasAmounts()) { box.style.display = 'none'; return; }
     const prev = prevMonthOf(currentYear, currentMonth);
     const prevOk = monthHasManualAmounts(prev.year, prev.month);
@@ -9708,6 +10006,14 @@ function performBudgetCopy() {
   if (!copyIncome) delete copyData.monthlyIncome;
   const prevTarget = (allData.users[currentUser].data[currentYear] || {})[MONTHS[currentMonth]];   // v4.22.0
   if (!copyIncome && prevTarget && prevTarget.monthlyIncome > 0) copyData.monthlyIncome = prevTarget.monthlyIncome;
+
+  // v4.25.0: Betraege von Posten, die im Zielmonat nicht gelten, nicht mitkopieren
+  getKategorien().forEach(kat => {
+    const km = copyData[kat.name];
+    if (!km || typeof km !== 'object') return;
+    const act = activePosten(kat, currentYear, currentMonth).map(x => x.name);
+    kat.posten.forEach(pp => { if (act.indexOf(pp.name) < 0) delete km[pp.name]; });
+  });
 
   // In Zielmonat schreiben (aktueller Monat/Jahr = fix)
   const targetMonthKey = MONTHS[currentMonth];
