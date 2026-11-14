@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Gehaltsplaner CB">
   <meta name="theme-color" content="#3B82F6">
-  <title>Gehaltsplaner Pro v4.17.1 - Option A (Option A: Tab-Lokalisiert)</title>
+  <title>Gehaltsplaner Pro v4.17.2 - Option A (Option A: Tab-Lokalisiert)</title>
   <script>
     // Async load Chart.js with fallback
     const script = document.createElement('script');
@@ -1291,7 +1291,7 @@ small { font-size: 12px; color: #999; }
         <p>Jahresplanung & Budgetierung deines Einkommens</p>
       </div>
       <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
-        <div class="version">v4.17.1</div>
+        <div class="version">v4.17.2</div>
         <div style="font-size: 10px; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.5px;">🔒 CLOSED BETA</div>
       </div>
     </div>
@@ -1872,9 +1872,20 @@ small { font-size: 12px; color: #999; }
         </p>
       </div>
 
-      <!-- v4.17.1: FEATURE - AUF ALLEN GERAETEN ABMELDEN -->
+      <!-- v4.17.2: BUGFIX - ABMELDUNG AUF ANDEREN GERAETEN -->
       <div class="settings-card" style="background: #f0fdf4; border-color: #86efac; border-width: 3px;">
-        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">🚪 v4.17.1 - Feature: Auf allen Geräten abmelden (aktuell)</p>
+        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">🐛 v4.17.2 - Bugfix: "Auf allen Geräten abmelden" wirkt jetzt sofort (aktuell)</p>
+        <p style="font-size: 12px; color: #15803d; line-height: 1.6; margin: 0;">
+          <strong>Problem:</strong> Andere Geräte blieben nach "Auf allen Geräten abmelden" angemeldet, bis ihr Zugangsschlüssel nach etwa einer Stunde ablief.<br>
+          <strong>Fix:</strong> Die App prüft die Sitzung beim Start, beim Zurückkehren in die App und vor jedem Abgleich beim Server (höchstens einmal pro Minute). Ist die Sitzung beendet, wird das Gerät abgemeldet, mit Hinweis. Lokale Daten bleiben erhalten.<br>
+          <strong>Sicher:</strong> Bei fehlendem Internet oder Serverproblemen bleibst du angemeldet.<br>
+          <strong>Was testen:</strong> Am iPhone "Auf allen Geräten abmelden". Am Mac die App in den Hintergrund und wieder nach vorn holen (oder neu öffnen): Hinweis "von diesem Gerät abgemeldet", Cloud-Konto zeigt "Anmelden".
+        </p>
+      </div>
+
+      <!-- v4.17.1: FEATURE - AUF ALLEN GERAETEN ABMELDEN -->
+      <div class="settings-card" style="background: #f0fdf4; border-color: #86efac;">
+        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">🚪 v4.17.1 - Feature: Auf allen Geräten abmelden</p>
         <p style="font-size: 12px; color: #15803d; line-height: 1.6; margin: 0;">
           <strong>Neu:</strong> Im Cloud-Konto gibt es "Auf allen Geräten abmelden" (mit Rückfrage). Alle Anmeldungen deines Kontos werden beendet, auch auf Mac, iPhone und im Browser. Nützlich nach einem Passwortwechsel oder bei einem verlorenen Gerät.<br>
           <strong>Daten:</strong> Lokale Daten und Cloud-Daten bleiben unverändert.<br>
@@ -6704,17 +6715,45 @@ async function cloudSignIn(email, pw) {
   cloudSaveSession(sess);
   return { loggedIn: true };
 }
+let cloudLastValidate = 0;
 async function cloudRefreshIfNeeded() {
   const s = cloudLoadSession();
   if (!s || !s.refresh_token) return;
-  if (s.expires_at > Math.floor(Date.now() / 1000) + 60) return;
-  const res = await cloudApi('/auth/v1/token?grant_type=refresh_token', 'POST', { refresh_token: s.refresh_token });
-  if (res.ok) {
-    const n = cloudSessionFrom(res.data, s.email);
-    if (n) { if (!n.email) n.email = s.email; cloudSaveSession(n); }
-  } else if (!res.network && res.status >= 400 && res.status < 500) {
-    cloudClearSession();
+  if (s.expires_at <= Math.floor(Date.now() / 1000) + 60) {
+    const res = await cloudApi('/auth/v1/token?grant_type=refresh_token', 'POST', { refresh_token: s.refresh_token });
+    if (res.ok) {
+      const n = cloudSessionFrom(res.data, s.email);
+      if (n) { if (!n.email) n.email = s.email; cloudSaveSession(n); }
+    } else if (!res.network && res.status >= 400 && res.status < 500) {
+      cloudClearSession(); cloudSessionLost();
+    }
+    cloudLastValidate = Date.now();
+    return;
   }
+  // v4.17.2: Sitzung beim Server pruefen (hoechstens einmal pro Minute). Wurde sie z.B. mit "Auf allen Geraeten abmelden" beendet,
+  // lehnt der Server den Token ab und der Refresh-Token ist ungueltig -> dieses Geraet wird abgemeldet.
+  if (Date.now() - cloudLastValidate < 60000) return;
+  cloudLastValidate = Date.now();
+  const u = await cloudApi('/auth/v1/user', 'GET', null, s.access_token);
+  if (u.ok || u.network || u.status >= 500) return;
+  if (u.status === 401 || u.status === 403) {
+    const r = await cloudApi('/auth/v1/token?grant_type=refresh_token', 'POST', { refresh_token: s.refresh_token });
+    if (r.ok) {
+      const n = cloudSessionFrom(r.data, s.email);
+      if (n) { if (!n.email) n.email = s.email; cloudSaveSession(n); }
+    } else if (!r.network && r.status >= 400 && r.status < 500) {
+      cloudClearSession(); cloudSessionLost();
+    }
+  }
+}
+let cloudSessionLostAt = 0;
+function cloudSessionLost() {
+  if (Date.now() - cloudSessionLostAt < 5000) return;
+  cloudSessionLostAt = Date.now();
+  cloudState = 'idle'; clearTimeout(cloudAutoTimer); cloudHideBanner();
+  renderCloudUi();
+  try { if (document.getElementById('cloudModal').classList.contains('active')) closeCloudModal(); } catch (e) {}
+  showSuccessMessage('Du wurdest von diesem Gerät abgemeldet (Sitzung beendet). Deine Daten sind unverändert.');
 }
 async function cloudSignOutClick() {
   const s = cloudLoadSession();
@@ -7029,7 +7068,7 @@ async function cloudAutoUploadRun() {
   try {
     await cloudRefreshIfNeeded();
     const s = cloudLoadSession();
-    if (!s) { cloudState = 'error'; cloudLastError = 'Nicht angemeldet.'; return; }
+    if (!s) { cloudSessionLost(); return; }
     const g = await cloudApi('/rest/v1/app_data?select=updated_at', 'GET', null, s.access_token);
     if (!g.ok || !Array.isArray(g.data)) { cloudState = 'error'; cloudLastError = cloudSyncErr(g); return; }
     const row = g.data[0] || null;
@@ -7073,7 +7112,7 @@ async function cloudCheckRemote(force) {
   cloudLastRemoteCheck = Date.now();
   await cloudRefreshIfNeeded();
   const s = cloudLoadSession();
-  if (!s) return;
+  if (!s) { cloudSessionLost(); return; }
   const g = await cloudApi('/rest/v1/app_data?select=updated_at', 'GET', null, s.access_token);
   if (!g.ok || !Array.isArray(g.data)) return;
   const row = g.data[0];
@@ -9550,7 +9589,7 @@ function executeDeleteAllSparkonten(year) {
 // v4.8.3: DATEN-EXPORT / -IMPORT (JSON)
 // ============================================================
 const BACKUP_APP_NAME = 'Gehaltsplaner Pro';
-const BACKUP_APP_VERSION = '4.17.1';
+const BACKUP_APP_VERSION = '4.17.2';
 
 // Meldung nach dem Schließen des Menüs zeigen (alert() wird von offenen Modals blockiert)
 function dataBackupAlert(message) {
