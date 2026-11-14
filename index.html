@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Gehaltsplaner CB">
   <meta name="theme-color" content="#3B82F6">
-  <title>Gehaltsplaner Pro v4.25.0 - Option A (Option A: Tab-Lokalisiert)</title>
+  <title>Gehaltsplaner Pro v4.26.0.1 - Option A (Option A: Tab-Lokalisiert)</title>
   <script>
     // Async load Chart.js with fallback
     const script = document.createElement('script');
@@ -1256,6 +1256,14 @@ small { font-size: 12px; color: #999; }
   }
 }
 
+/* v4.26.0: Budget-Schnellrechner */
+.sz-pos { color: #10B981; }
+.sz-neg { color: #EF4444; }
+.sz-delta { font-size: 10px; color: #aaa; margin-top: 3px; min-height: 12px; }
+@media (prefers-color-scheme: dark) {
+  .sz-pos { color: #34d399 !important; }
+  .sz-neg { color: #f87171 !important; }
+}
 /* v4.23.0: Hauptmenue */
 .mm-wrap { position: fixed; top: 0; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.5); z-index: 99998; }
 .mm-panel { position: absolute; top: 0; bottom: 0; left: 0; width: 280px; max-width: 85%; background: white; padding: calc(1rem + env(safe-area-inset-top, 0px)) 1rem 1rem 1rem; box-shadow: 2px 0 12px rgba(0,0,0,0.25); overflow-y: auto; box-sizing: border-box; }
@@ -1455,6 +1463,7 @@ small { font-size: 12px; color: #999; }
       </div>
       <button class="mm-item" id="mmItemUsers" onclick="goSection('users')">👤 Benutzerverwaltung</button>
       <button class="mm-item" id="mmItemBudget" onclick="goSection('budget')">📊 Budgetplaner</button>
+      <button class="mm-item" id="mmItemCalc" onclick="goSection('calc')">🧮 Budget-Schnellrechner</button>
       <button class="mm-item" id="mmItemSettings" onclick="goSection('settings')">⚙️ Einstellungen</button>
       <button class="mm-item" id="mmItemNotes" onclick="goSection('notes')">📝 Release Notes</button>
     </div>
@@ -1518,6 +1527,61 @@ small { font-size: 12px; color: #999; }
     </div>
   </div>
 
+  <!-- v4.26.0: Fenster Budget-Schnellrechner -->
+  <div id="szNewModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 99999; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 12px; padding: 1.5rem; width: 90%; max-width: 380px; max-height: 90vh; overflow-y: auto;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+        <h3 id="szNewTitle" style="margin: 0; font-size: 16px;">🆕 Neues Szenario</h3>
+        <button onclick="closeSzNew()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #666;">✕</button>
+      </div>
+      <div style="margin-bottom: 1rem;">
+        <label style="font-size: 12px; font-weight: 600; color: #374151; display: block; margin-bottom: 0.4rem;">Name</label>
+        <input type="text" id="szNewName" placeholder="z.B. Teilzeit" style="width: 100%; padding: 10px 12px; border: 1.5px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+      </div>
+      <div id="szNewStartBox" style="margin-bottom: 1.25rem;">
+        <label style="font-size: 12px; font-weight: 600; color: #374151; display: block; margin-bottom: 0.4rem;">Startpunkt</label>
+        <select id="szNewStart" onchange="szNewStartChanged()" style="width: 100%; padding: 10px 12px; border: 1.5px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box; margin-bottom: 0.5rem;">
+          <option value="month">Aus einem Monat übernehmen</option>
+          <option value="empty">Leer starten</option>
+        </select>
+        <div id="szNewMonthRow" style="display: flex; gap: 0.5rem;">
+          <select id="szNewMonth" style="flex: 1; padding: 8px 10px; border: 1.5px solid #d1d5db; border-radius: 6px; font-size: 13px; box-sizing: border-box;"></select>
+          <select id="szNewYear" style="width: 84px; padding: 8px 10px; border: 1.5px solid #d1d5db; border-radius: 6px; font-size: 13px; box-sizing: border-box;"></select>
+        </div>
+        <p id="szNewHint" style="font-size: 12px; color: #666; margin: 0.5rem 0 0 0; line-height: 1.5;"></p>
+      </div>
+      <div style="display: flex; gap: 0.75rem;">
+        <button onclick="saveSzNew()" style="flex: 1; padding: 0.75rem; background: #3B82F6; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer;">Speichern</button>
+        <button onclick="closeSzNew()" style="flex: 1; padding: 0.75rem; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; cursor: pointer;">Abbrechen</button>
+      </div>
+    </div>
+  </div>
+  <div id="szLineModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 99999; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 12px; padding: 1.5rem; width: 90%; max-width: 380px; max-height: 90vh; overflow-y: auto;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+        <h3 style="margin: 0; font-size: 16px;">➕ Zeile hinzufügen</h3>
+        <button onclick="closeSzLine()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #666;">✕</button>
+      </div>
+      <div style="margin-bottom: 1rem;">
+        <label style="font-size: 12px; font-weight: 600; color: #374151; display: block; margin-bottom: 0.4rem;">Name</label>
+        <input type="text" id="szLineName" placeholder="z.B. Neue Versicherung" style="width: 100%; padding: 10px 12px; border: 1.5px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+      </div>
+      <div style="margin-bottom: 1rem;">
+        <label style="font-size: 12px; font-weight: 600; color: #374151; display: block; margin-bottom: 0.4rem;">Betrag pro Monat (€)</label>
+        <input type="number" step="0.01" id="szLineAmount" placeholder="0" style="width: 100%; padding: 10px 12px; border: 1.5px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box;">
+      </div>
+      <div style="margin-bottom: 1.25rem;">
+        <label style="font-size: 12px; font-weight: 600; color: #374151; display: block; margin-bottom: 0.4rem;">Kategorie</label>
+        <select id="szLineKat" style="width: 100%; padding: 10px 12px; border: 1.5px solid #d1d5db; border-radius: 6px; font-size: 14px; box-sizing: border-box;"></select>
+        <p style="font-size: 12px; color: #666; margin: 0.5rem 0 0 0; line-height: 1.5;">Die Kategorie bestimmt, ob die Zeile zu Ausgaben oder zu Sparen zählt.</p>
+      </div>
+      <div style="display: flex; gap: 0.75rem;">
+        <button onclick="saveSzLine()" style="flex: 1; padding: 0.75rem; background: #3B82F6; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer;">Hinzufügen</button>
+        <button onclick="closeSzLine()" style="flex: 1; padding: 0.75rem; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; cursor: pointer;">Abbrechen</button>
+      </div>
+    </div>
+  </div>
+
   <!-- v4.9.0: Kategorie-Modal (Budgetplanung) -->
   <div class="modal" id="katModal" style="z-index: 99997;" onclick="if (event.target === this) closeKatModal()">
     <div class="modal-content" style="max-width: 560px; width: 94%;">
@@ -1541,7 +1605,7 @@ small { font-size: 12px; color: #999; }
         <p>Jahresplanung & Budgetierung deines Einkommens</p>
       </div>
       <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
-        <div class="version">v4.25.0</div>
+        <div class="version">v4.26.0.1</div>
         <div style="font-size: 10px; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.5px;">🔒 CLOSED BETA</div>
       </div>
     </div>
@@ -2070,9 +2134,32 @@ small { font-size: 12px; color: #999; }
         </p>
       </div>
 
+      <!-- v4.26.0.1: BUGFIX - SZENARIO LOESCHEN -->
+      <div class="settings-card" style="background: #fee2e2; border-color: #fca5a5; border-width: 3px;">
+        <p style="font-size: 13px; font-weight: 700; color: #991b1b; margin-bottom: 0.5rem;">🐛 v4.26.0.1 - Bugfix: Szenario löschen funktioniert (aktuell)</p>
+        <p style="font-size: 12px; color: #b91c1c; line-height: 1.6; margin: 0;">
+          <strong>Problem:</strong> Der 🗑️-Button bei einem Szenario tat nichts, weil die Rückfrage das Browser-<code>confirm()</code> nutzte, das in manchen Umgebungen blockiert wird.<br>
+          <strong>Lösung:</strong> Löschen und "Zurücksetzen" fragen jetzt mit der App-eigenen Bestätigung (Fenster mit Abbrechen / Löschen) nach. Deine echten Daten bleiben unverändert.<br>
+          <strong>Was testen:</strong> ☰, Budget-Schnellrechner, 🗑️ bei einem Szenario: Fenster erscheint. Abbrechen lässt das Szenario stehen, "Löschen" entfernt es. Im geöffneten Szenario "Zurücksetzen" ebenso.
+        </p>
+      </div>
+
+      <!-- v4.26.0: FEATURE - BUDGET-SCHNELLRECHNER -->
+      <div class="settings-card" style="background: #f0fdf4; border-color: #86efac;">
+        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">✨ v4.26.0 - Feature: Budget-Schnellrechner</p>
+        <p style="font-size: 12px; color: #15803d; line-height: 1.6; margin: 0;">
+          <strong>Neu:</strong> Im ☰-Menü gibt es den Punkt <strong>🧮 Budget-Schnellrechner</strong>. Dort spielst du "Was wäre wenn?" durch, ohne deine echten Daten zu ändern.<br>
+          <strong>Szenario anlegen:</strong> Name wählen und entweder <strong>aus einem Monat übernehmen</strong> (Einkommen, Fixkosten, Sparkonten und Posten-Beträge dieses Monats werden kopiert) oder <strong>leer starten</strong>. Du kannst beliebig viele Szenarien speichern, öffnen, umbenennen, duplizieren und löschen.<br>
+          <strong>Im Szenario:</strong> Einkommen und alle Beträge sind frei änderbar. Zeilen lassen sich entfernen oder hinzufügen (mit Kategorie, die über Ausgaben oder Sparen entscheidet). Die Kennzahlen Einkommen, Ausgaben, Sparen, Sparquote und Saldo werden sofort neu gerechnet, nach derselben Regel wie in der Budgetplanung. Bei Szenarien aus einem Monat steht bei jeder Zahl der <strong>Unterschied zu Ist</strong> (dem echten Monat). "↺ Zurücksetzen" holt den Start wieder her.<br>
+          <strong>Sicher:</strong> Ein Szenario ist eine Kopie. Fixkosten, Sparkonten, Posten und Beträge der Budgetplanung werden nie verändert. Szenarien sind Teil der Datensicherung (Export/Import).<br>
+          <strong>Grenzen:</strong> Ein Szenario rechnet einen Monat (keine Jahres-Hochrechnung). Es gibt keine Übernahme in die echte Planung. Der Name "Budget-Schnellrechner" ist vorläufig.<br>
+          <strong>Was testen:</strong> ☰, Budget-Schnellrechner, "Neues Szenario", Monat wählen. Einen Betrag ändern und den Saldo sowie "ggü. Ist" prüfen. Zeile hinzufügen und entfernen. In der Budgetplanung prüfen, dass nichts verändert ist. Dunkelmodus ansehen.
+        </p>
+      </div>
+
       <!-- v4.25.0: FEATURE - GELTUNGSBEREICH FUER POSTEN -->
-      <div class="settings-card" style="background: #f0fdf4; border-color: #86efac; border-width: 3px;">
-        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">✨ v4.25.0 - Feature: Geltungsbereich für Posten (aktuell)</p>
+      <div class="settings-card" style="background: #f0fdf4; border-color: #86efac;">
+        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">✨ v4.25.0 - Feature: Geltungsbereich für Posten</p>
         <p style="font-size: 12px; color: #15803d; line-height: 1.6; margin: 0;">
           <strong>Problem:</strong> Ein neuer Posten (z. B. "AXA" in Versicherungen, nur für Januar 2024 angelegt) erschien in allen Monaten und Jahren. Beim Löschen war er ebenfalls überall weg.<br>
           <strong>Neu beim Anlegen:</strong> Im Fenster "Neuer Posten" steht "Gilt für" mit Von (Monat, Jahr) und Bis (Monat, Jahr oder "unbegrenzt"). Die Schnellwahl "Nur dieser Monat" (Standard), "Nur [Jahr]" und "Ab diesem Monat" füllt die Felder vor. Ein Hinweis zeigt, wofür der Posten gilt.<br>
@@ -5251,6 +5338,13 @@ small { font-size: 12px; color: #999; }
       </div>
     </div>
 
+    <!-- v4.26.0: Seite Budget-Schnellrechner -->
+    <div id="tab7" class="tab-content mm-page">
+      <h2 style="margin: 0 0 0.25rem 0; font-size: 18px;">🧮 Budget-Schnellrechner</h2>
+      <p style="font-size: 12px; color: #666; margin: 0 0 1rem 0; line-height: 1.5;">Spiele Szenarien durch, ohne deine echten Daten zu ändern. Ein Szenario ist eine Kopie, die du frei verändern kannst.</p>
+      <div id="szHost"></div>
+    </div>
+
     <!-- v4.23.0: Seite Einstellungen -->
     <div id="tab6" class="tab-content mm-page">
       <h2 style="margin: 0 0 1rem 0; font-size: 18px;">⚙️ Einstellungen</h2>
@@ -6479,6 +6573,292 @@ function confirmDeletePosten() {
   if (ret !== null) { try { openKatModal(ret); } catch (e) {} }
 }
 
+// ============================================================
+// v4.26.0: BUDGET-SCHNELLRECHNER (Szenarien, aendern nie die echten Daten)
+// Ein Szenario ist eine Kopie eines Monats (oder leer) mit Einkommen und Zeilen (Kategorie, Name, Betrag pro Monat).
+// Gerechnet wird wie in der Budgetplanung: Ausgaben/Sparen nach Tag der Kategorie, Saldo = Einkommen - Ausgaben - Sparen.
+// ============================================================
+let szOpenId = null;
+let szSaveTimer = null;
+
+function szList() {
+  const u = allData.users[currentUser];
+  if (!u.szenarien) u.szenarien = [];
+  return u.szenarien;
+}
+function szFind(id) { return szList().find(x => x.id === id) || null; }
+function szFmt(v) {
+  const r = Math.round(v);
+  return (r < 0 ? '-€' : '€') + Math.abs(r).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function szMonthLabel(b) { return b ? MONTHS[b.m] + ' ' + b.y : ''; }
+
+// Einkommen und Zeilen eines echten Monats (nur lesen; ensureSerienForYear legt bei Bedarf wie ueberall die Jahresliste an)
+function szBasisFromMonth(y, m) {
+  const u = allData.users[currentUser];
+  const prevY = currentYear;
+  currentYear = y;
+  // ensureSerienForYear legt fehlende Jahreslisten an; der Schnellrechner soll echte Daten nie veraendern, also wieder entfernen
+  const hadList = {}; ['fixkosten', 'sparkonten'].forEach(k => { hadList[k] = !!(u[k] && u[k][y]); });
+  try {
+    const md = ((u.data || {})[y] || {})[MONTHS[m]] || {};
+    const income = md.monthlyIncome > 0 ? md.monthlyIncome : getStandardInfo(y).value;
+    const lines = [];
+    [['fixkosten', 'fix'], ['sparkonten', 'spar']].forEach(pair => {
+      serienList(pair[0]).filter(it => serieAktiv(it, y, m)).forEach(it => {
+        const b = parseFloat(it.betrag) || 0;
+        const mon = it.type === 'jahresausgabe' ? parseFloat((b / 12).toFixed(2)) : b;
+        lines.push({ id: generateId(), kat: it.category, name: it.name, betrag: mon, quelle: pair[1] });
+      });
+    });
+    getKategorien().forEach(kat => {
+      activePosten(kat, y, m).forEach(pp => {
+        const v = parseFloat(md[kat.name] && md[kat.name][pp.name]) || 0;
+        lines.push({ id: generateId(), kat: kat.name, name: pp.name, betrag: v, quelle: 'posten' });
+      });
+    });
+    return { income: parseFloat(income) || 0, lines };
+  } finally {
+    currentYear = prevY;
+    ['fixkosten', 'sparkonten'].forEach(k => { if (!hadList[k] && u[k] && u[k][y]) delete u[k][y]; });
+  }
+}
+function szTotals(income, lines) {
+  let aus = 0, spar = 0;
+  lines.forEach(l => { const v = parseFloat(l.betrag) || 0; if (isSparKategorie(l.kat)) spar += v; else aus += v; });
+  income = parseFloat(income) || 0;
+  return { income, aus, spar, saldo: income - aus - spar, quote: income > 0 ? Math.round(spar / income * 100) : 0 };
+}
+function szIst(sz) {
+  if (!sz.basis) return null;
+  const b = szBasisFromMonth(sz.basis.y, sz.basis.m);
+  return szTotals(b.income, b.lines);
+}
+function szSave() {
+  clearTimeout(szSaveTimer);
+  szSaveTimer = setTimeout(() => { try { saveAllData(); } catch (e) {} }, 150);
+}
+
+function renderSzenarien() {
+  const host = document.getElementById('szHost');
+  if (!host || !currentUser || !allData.users[currentUser]) return;
+  try {
+    const sz = szOpenId ? szFind(szOpenId) : null;
+    if (szOpenId && !sz) szOpenId = null;
+    host.innerHTML = sz ? szEditorHtml(sz) : szListHtml();
+    if (sz) szUpdateKpis();
+  } catch (e) { console.error('renderSzenarien error:', e); }
+}
+
+function szListHtml() {
+  const list = szList();
+  let html = `<button onclick="openSzNew()" class="btn-primary" style="width: 100%; padding: 0.75rem; font-size: 14px; margin-bottom: 1rem;">➕ Neues Szenario</button>`;
+  if (!list.length) {
+    return html + `<div style="text-align: center; padding: 2rem 1rem; color: #9ca3af;"><div style="font-size: 32px; margin-bottom: 0.75rem;">🧮</div>
+      <p style="font-size: 14px; font-weight: 500; color: #6b7280; margin: 0 0 0.5rem 0;">Noch kein Szenario</p>
+      <p style="font-size: 12px; margin: 0;">Lege eines an und starte mit den Zahlen eines Monats, um "Was wäre wenn?" durchzuspielen.</p></div>`;
+  }
+  list.forEach(sz => {
+    const t = szTotals(sz.income, sz.lines);
+    html += `<div class="settings-card" style="margin-bottom: 0.75rem;">
+      <div onclick="openSzenario('${sz.id}')" style="cursor: pointer;">
+        <div style="font-size: 14px; font-weight: 600;">${esc(sz.name)}</div>
+        <div style="font-size: 11px; color: #9ca3af; margin: 2px 0 6px 0;">${sz.basis ? 'Start: ' + esc(szMonthLabel(sz.basis)) : 'Leer gestartet'}</div>
+        <div style="font-size: 13px;">Saldo <strong class="${t.saldo >= 0 ? 'sz-pos' : 'sz-neg'}">${szFmt(t.saldo)}</strong> · Sparquote <strong>${t.quote}%</strong></div>
+      </div>
+      <div style="display: flex; gap: 0.4rem; margin-top: 0.75rem;">
+        <button onclick="openSzenario('${sz.id}')" class="btn-primary" style="flex: 1; padding: 6px; font-size: 12px;">Öffnen</button>
+        <button onclick="szDuplicate('${sz.id}')" style="padding: 6px 10px; font-size: 12px; background: white; border: 1px solid #d1d5db; border-radius: 6px; cursor: pointer;" title="Duplizieren">⧉</button>
+        <button onclick="szRename('${sz.id}')" style="padding: 6px 10px; font-size: 12px; background: white; border: 1px solid #d1d5db; border-radius: 6px; cursor: pointer;" title="Umbenennen">✏️</button>
+        <button onclick="szDelete('${sz.id}')" style="padding: 6px 10px; font-size: 12px; background: #fee2e2; border: 1px solid #fca5a5; border-radius: 6px; cursor: pointer;" title="Löschen">🗑️</button>
+      </div></div>`;
+  });
+  return html;
+}
+
+function szEditorHtml(sz) {
+  const kats = getKategorien();
+  const order = kats.map(k => k.name);
+  sz.lines.forEach(l => { if (order.indexOf(l.kat) < 0) order.push(l.kat); });
+  let html = `<button onclick="closeSzenario()" style="padding: 6px 10px; font-size: 12px; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 6px; cursor: pointer; color: #374151; margin-bottom: 0.75rem;">← Alle Szenarien</button>
+    <div style="font-size: 16px; font-weight: 700;">${esc(sz.name)}</div>
+    <div style="font-size: 12px; color: #9ca3af; margin: 2px 0 1rem 0;">${sz.basis ? 'Start: ' + esc(szMonthLabel(sz.basis)) + ' (Kopie, deine echten Daten bleiben unverändert)' : 'Leer gestartet'}</div>
+    <div class="summary-grid" style="margin-bottom: 1rem;">
+      <div class="kpi"><div class="kpi-label">Einkommen</div><input type="number" step="0.01" id="szIncome" value="${sz.income || ''}" placeholder="0" oninput="szEditIncome(this.value)" style="width: 100%; padding: 4px 6px; font-size: 16px; font-weight: 700; border: 1.5px solid #d1d5db; border-radius: 6px; box-sizing: border-box;"><div class="sz-delta" id="szDeltaIncome"></div></div>
+      <div class="kpi"><div class="kpi-label">Ausgaben</div><div class="kpi-value" id="szAus">€0</div><div class="sz-delta" id="szDeltaAus"></div></div>
+      <div class="kpi"><div class="kpi-label">Sparen</div><div class="kpi-value" id="szSpar">€0</div><div class="sz-delta" id="szDeltaSpar"></div></div>
+      <div class="kpi"><div class="kpi-label">Sparquote</div><div class="kpi-value" id="szQuote">0%</div><div class="sz-delta" id="szDeltaQuote"></div></div>
+      <div class="kpi"><div class="kpi-label">Saldo</div><div class="kpi-value" id="szSaldo">€0</div><div class="sz-delta" id="szDeltaSaldo"></div></div>
+    </div>`;
+  if (sz.basis) html += `<button onclick="szReset('${sz.id}')" style="padding: 6px 10px; font-size: 12px; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 6px; cursor: pointer; color: #374151; margin-bottom: 1rem;">↺ Auf ${esc(szMonthLabel(sz.basis))} zurücksetzen</button>`;
+  order.forEach(kn => {
+    const ls = sz.lines.filter(l => l.kat === kn);
+    if (!ls.length) return;
+    const spar = isSparKategorie(kn);
+    html += `<div class="settings-card" style="margin-bottom: 0.75rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+        <div style="font-size: 14px; font-weight: 600;">${esc(kn)} <span style="font-size: 11px; color: #9ca3af; font-weight: 400;">${spar ? 'Sparen' : 'Ausgaben'}</span></div>
+        <div style="font-size: 13px; font-weight: 600;" data-szcat="${esc(kn)}"></div>
+      </div>`;
+    ls.forEach(l => {
+      const mark = l.quelle === 'fix' ? '📌 ' : (l.quelle === 'spar' ? '🏦 ' : '');
+      html += `<div style="display: flex; align-items: center; gap: 0.5rem; padding: 6px 10px; background: #f9fafb; border-radius: 6px; margin-bottom: 4px;">
+        <span style="flex: 1; min-width: 0; font-size: 13px; color: #374151; overflow-wrap: anywhere;">${mark}${esc(l.name)}</span>
+        <input type="number" step="0.01" value="${l.betrag === 0 ? '' : l.betrag}" placeholder="0" oninput="szEditLine('${l.id}', this.value)" style="width: 96px; padding: 6px 8px; font-size: 14px; border: 1.5px solid #d1d5db; border-radius: 6px; box-sizing: border-box; text-align: right;">
+        <button onclick="szDeleteLine('${l.id}')" style="padding: 4px 8px; font-size: 11px; background: #fee2e2; border: 1px solid #fca5a5; border-radius: 4px; cursor: pointer;" title="Zeile entfernen">🗑️</button>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  if (!sz.lines.length) html += `<p style="font-size: 12px; color: #9ca3af; text-align: center; margin: 1rem 0;">Noch keine Zeilen. Füge unten die erste hinzu.</p>`;
+  html += `<button onclick="openSzLine()" style="width: 100%; padding: 7px; font-size: 12px; background: #f0fdf4; border: 1px dashed #86efac; border-radius: 6px; cursor: pointer; color: #166534; font-weight: 500;">➕ Zeile hinzufügen</button>`;
+  return html;
+}
+
+// Kennzahlen und Kategorie-Summen neu rechnen, ohne die Eingabefelder neu aufzubauen
+function szUpdateKpis() {
+  const sz = szFind(szOpenId);
+  if (!sz) return;
+  const t = szTotals(sz.income, sz.lines), ist = szIst(sz);
+  const set = (id, txt) => { const e = document.getElementById(id); if (e) e.textContent = txt; };
+  set('szAus', szFmt(t.aus)); set('szSpar', szFmt(t.spar)); set('szQuote', t.quote + '%'); set('szSaldo', szFmt(t.saldo));
+  const sd = document.getElementById('szSaldo');
+  if (sd) sd.className = 'kpi-value ' + (t.saldo >= 0 ? 'sz-pos' : 'sz-neg');
+  const dl = (cur, base, unit) => {
+    const d = Math.round(cur - base);
+    if (!d) return 'wie Ist';
+    return (d > 0 ? '+' : '−') + Math.abs(d).toLocaleString('de-DE') + unit + ' ggü. Ist';
+  };
+  set('szDeltaIncome', ist ? dl(t.income, ist.income, ' €') : '');
+  set('szDeltaAus', ist ? dl(t.aus, ist.aus, ' €') : '');
+  set('szDeltaSpar', ist ? dl(t.spar, ist.spar, ' €') : '');
+  set('szDeltaQuote', ist ? dl(t.quote, ist.quote, ' Pkt.') : '');
+  set('szDeltaSaldo', ist ? dl(t.saldo, ist.saldo, ' €') : '');
+  document.querySelectorAll('#szHost [data-szcat]').forEach(el => {
+    const kn = el.getAttribute('data-szcat');   // getAttribute liefert den entschluesselten Namen
+    el.textContent = szFmt(sz.lines.filter(l => l.kat === kn).reduce((a, l) => a + (parseFloat(l.betrag) || 0), 0));
+  });
+}
+function szEditIncome(v) {
+  const sz = szFind(szOpenId); if (!sz) return;
+  sz.income = parseFloat(v) || 0;
+  szUpdateKpis(); szSave();
+}
+function szEditLine(id, v) {
+  const sz = szFind(szOpenId); if (!sz) return;
+  const l = sz.lines.find(x => x.id === id); if (!l) return;
+  l.betrag = parseFloat(v) || 0;
+  szUpdateKpis(); szSave();
+}
+function szDeleteLine(id) {
+  const sz = szFind(szOpenId); if (!sz) return;
+  sz.lines = sz.lines.filter(x => x.id !== id);
+  saveAllData(); renderSzenarien();
+}
+function openSzenario(id) { szOpenId = id; renderSzenarien(); window.scrollTo(0, 0); }
+function closeSzenario() { szOpenId = null; renderSzenarien(); window.scrollTo(0, 0); }
+
+// Neues Szenario
+let szRenameId = null;
+function fillSzNewSelects() {
+  const m = document.getElementById('szNewMonth'), y = document.getElementById('szNewYear');
+  if (!m || m.options.length) return;
+  MONTHS.forEach((n, i) => m.add(new Option(n, i)));
+  for (let yy = Math.min(2024, currentYear); yy <= Math.max(2050, currentYear); yy++) y.add(new Option(yy, yy));
+}
+function openSzNew() {
+  szRenameId = null;
+  fillSzNewSelects();
+  document.getElementById('szNewTitle').textContent = '🆕 Neues Szenario';
+  document.getElementById('szNewName').value = 'Szenario ' + (szList().length + 1);
+  document.getElementById('szNewStartBox').style.display = 'block';
+  document.getElementById('szNewStart').value = 'month';
+  document.getElementById('szNewMonth').value = String(currentMonth);
+  document.getElementById('szNewYear').value = String(currentYear);
+  szNewStartChanged();
+  document.getElementById('szNewModal').style.display = 'flex';
+  document.getElementById('szNewName').focus();
+}
+function szNewStartChanged() {
+  const month = document.getElementById('szNewStart').value === 'month';
+  document.getElementById('szNewMonthRow').style.display = month ? 'flex' : 'none';
+  document.getElementById('szNewHint').textContent = month
+    ? 'Einkommen, Fixkosten, Sparkonten und die Posten-Beträge dieses Monats werden als Kopie übernommen.'
+    : 'Du startest ohne Zahlen und fügst Einkommen und Zeilen selbst hinzu.';
+}
+function closeSzNew() { document.getElementById('szNewModal').style.display = 'none'; szRenameId = null; }
+function saveSzNew() {
+  const name = document.getElementById('szNewName').value.trim();
+  if (!name) { alert('Name ist erforderlich!'); return; }
+  if (szRenameId) {
+    const sz = szFind(szRenameId); if (sz) sz.name = name;
+    closeSzNew(); saveAllData(); renderSzenarien(); return;
+  }
+  const sz = { id: generateId(), name, income: 0, basis: null, lines: [], created: Date.now() };
+  if (document.getElementById('szNewStart').value === 'month') {
+    const y = parseInt(document.getElementById('szNewYear').value), m = parseInt(document.getElementById('szNewMonth').value);
+    const b = szBasisFromMonth(y, m);
+    sz.income = b.income; sz.lines = b.lines; sz.basis = { y, m };
+  }
+  szList().push(sz);
+  closeSzNew(); saveAllData();
+  szOpenId = sz.id; renderSzenarien(); window.scrollTo(0, 0);
+}
+function szRename(id) {
+  const sz = szFind(id); if (!sz) return;
+  szRenameId = id;
+  document.getElementById('szNewTitle').textContent = '✏️ Szenario umbenennen';
+  document.getElementById('szNewName').value = sz.name;
+  document.getElementById('szNewStartBox').style.display = 'none';
+  document.getElementById('szNewModal').style.display = 'flex';
+  document.getElementById('szNewName').focus();
+}
+function szDuplicate(id) {
+  const sz = szFind(id); if (!sz) return;
+  const c = JSON.parse(JSON.stringify(sz));
+  c.id = generateId(); c.name = sz.name + ' (Kopie)'; c.created = Date.now();
+  c.lines.forEach(l => { l.id = generateId(); });
+  szList().push(c); saveAllData(); renderSzenarien();
+}
+function szDelete(id) {
+  const sz = szFind(id); if (!sz) return;
+  // v4.26.0.1: eigenes Bestaetigungs-Modal statt confirm() (confirm() wird in manchen Umgebungen blockiert)
+  openCloudConfirm('Szenario löschen', 'Szenario "' + sz.name + '" löschen?\nDeine echten Daten bleiben unverändert.', 'Löschen', true, () => {
+    const u = allData.users[currentUser];
+    u.szenarien = szList().filter(x => x.id !== id);
+    if (szOpenId === id) szOpenId = null;
+    saveAllData(); renderSzenarien();
+  });
+}
+function szReset(id) {
+  const sz = szFind(id); if (!sz || !sz.basis) return;
+  openCloudConfirm('Szenario zurücksetzen', 'Alle Änderungen in diesem Szenario verwerfen und auf ' + szMonthLabel(sz.basis) + ' zurücksetzen?', 'Zurücksetzen', true, () => {
+    const b = szBasisFromMonth(sz.basis.y, sz.basis.m);
+    sz.income = b.income; sz.lines = b.lines;
+    saveAllData(); renderSzenarien();
+  });
+}
+// Zeile hinzufuegen
+function openSzLine() {
+  const sel = document.getElementById('szLineKat');
+  sel.innerHTML = '';
+  getKategorien().forEach(k => sel.add(new Option(k.name + ' (' + (k.tag === 'sparen' ? 'Sparen' : 'Ausgaben') + ')', k.name)));
+  document.getElementById('szLineName').value = '';
+  document.getElementById('szLineAmount').value = '';
+  document.getElementById('szLineModal').style.display = 'flex';
+  document.getElementById('szLineName').focus();
+}
+function closeSzLine() { document.getElementById('szLineModal').style.display = 'none'; }
+function saveSzLine() {
+  const sz = szFind(szOpenId); if (!sz) return;
+  const name = document.getElementById('szLineName').value.trim();
+  const kat = document.getElementById('szLineKat').value;
+  if (!name) { alert('Name ist erforderlich!'); return; }
+  if (!kat) { alert('Bitte eine Kategorie wählen. Kategorien legst du im Budgetplaner an.'); return; }
+  sz.lines.push({ id: generateId(), kat, name, betrag: parseFloat(document.getElementById('szLineAmount').value) || 0, quelle: 'neu' });
+  closeSzLine(); saveAllData(); renderSzenarien();
+}
+
 function initUsers() {
   try {
     // v4.0.9.6: Cache alle DOM Elemente
@@ -6794,13 +7174,14 @@ function mmCurrentSection() {
   if (t === 4) return 'notes';
   if (t === 5) return 'users';
   if (t === 6) return 'settings';
+  if (t === 7) return 'calc';
   return 'budget';
 }
 function openMainMenu() {
   const m = document.getElementById('mainMenu');
   if (!m) return;
   const cur = mmCurrentSection();
-  [['users', 'mmItemUsers'], ['budget', 'mmItemBudget'], ['settings', 'mmItemSettings'], ['notes', 'mmItemNotes']].forEach(p => {
+  [['users', 'mmItemUsers'], ['budget', 'mmItemBudget'], ['calc', 'mmItemCalc'], ['settings', 'mmItemSettings'], ['notes', 'mmItemNotes']].forEach(p => {
     const el = document.getElementById(p[1]);
     if (el) el.classList.toggle('active', p[0] === cur);
   });
@@ -6814,6 +7195,10 @@ function goSection(name) {
   closeMainMenu();
   if (name === 'users') { renderUserMenuGrid(); switchTab(5); }
   else if (name === 'settings') { switchTab(6); }
+  else if (name === 'calc') {
+    if (!currentUser || !allData.users[currentUser]) { showWelcomeScreen(); lastActiveTab = -1; const bt = document.getElementById('budgetTabs'); if (bt) bt.style.display = ''; return; }
+    switchTab(7);
+  }
   else if (name === 'notes') { switchTab(4); }
   else {
     if (!currentUser || !allData.users[currentUser]) { showWelcomeScreen(); lastActiveTab = -1; const bt = document.getElementById('budgetTabs'); if (bt) bt.style.display = ''; return; }
@@ -7063,6 +7448,9 @@ function switchTab(i) {
   }
   if (i === 4) {
     ensureReleaseNotes();   // v4.20.1: Release Notes erst beim ersten Oeffnen aufbauen
+  }
+  if (i === 7) {
+    renderSzenarien();      // v4.26.0: Budget-Schnellrechner
   }
 }
 
