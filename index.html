@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Gehaltsplaner CB">
   <meta name="theme-color" content="#3B82F6">
-  <title>Gehaltsplaner Pro v4.12.0 - Option A (Option A: Tab-Lokalisiert)</title>
+  <title>Gehaltsplaner Pro v4.13.0 - Option A (Option A: Tab-Lokalisiert)</title>
   <script>
     // Async load Chart.js with fallback
     const script = document.createElement('script');
@@ -1102,6 +1102,49 @@ small { font-size: 12px; color: #999; }
   </div>
 
   <!-- User Menu Modal -->
+  <!-- v4.13.0: Cloud-Konto Modal -->
+  <div class="fixkosten-modal-overlay" id="cloudModal" style="z-index: 100000;">
+    <div class="fixkosten-modal" style="max-width: 420px;">
+      <div class="fixkosten-modal-header">
+        <span id="cloudModalTitle">☁️ Cloud-Konto</span>
+        <button class="fixkosten-modal-close" onclick="closeCloudModal()">×</button>
+      </div>
+
+      <div id="cloudViewIn" style="display: none;">
+        <div style="padding: 0.875rem; background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; margin-bottom: 1rem;">
+          <p style="font-size: 12px; color: #166534; margin: 0 0 0.25rem 0;">Angemeldet als</p>
+          <p style="font-size: 14px; font-weight: 700; color: #166534; margin: 0; word-break: break-all;" id="cloudViewEmail"></p>
+        </div>
+        <p style="font-size: 12px; color: #666; line-height: 1.5; margin: 0 0 1rem 0;">Deine Daten bleiben vorerst nur auf diesem Gerät. Die Synchronisierung zwischen Geräten kommt in einer der nächsten Versionen.</p>
+        <div class="fixkosten-modal-actions">
+          <button class="fixkosten-modal-btn-save" style="background: #EF4444;" onclick="cloudSignOutClick()">Abmelden</button>
+          <button class="fixkosten-modal-btn-cancel" onclick="closeCloudModal()">Schließen</button>
+        </div>
+      </div>
+
+      <div id="cloudViewOut">
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+          <button id="cloudTabLogin" onclick="setCloudMode('login')" class="btn-primary" style="flex: 1; padding: 0.5rem; font-size: 12px;">Anmelden</button>
+          <button id="cloudTabSignup" onclick="setCloudMode('signup')" class="btn-primary" style="flex: 1; padding: 0.5rem; font-size: 12px; opacity: 0.5;">Registrieren</button>
+        </div>
+        <div class="fixkosten-modal-field">
+          <label class="fixkosten-modal-label">E-Mail</label>
+          <input type="email" id="cloudEmail" autocomplete="username" autocapitalize="off" autocorrect="off" placeholder="name@beispiel.de" />
+        </div>
+        <div class="fixkosten-modal-field">
+          <label class="fixkosten-modal-label">Passwort</label>
+          <input type="password" id="cloudPassword" autocomplete="current-password" placeholder="Passwort" />
+          <p id="cloudPwHint" style="display: none; font-size: 11px; color: #666; margin: 0.35rem 0 0 0;">Mindestens 10 Zeichen. Am besten ein langes, einmaliges Passwort aus dem Passwort-Manager.</p>
+        </div>
+        <p id="cloudMessage" style="font-size: 12px; line-height: 1.5; margin: 0 0 1rem 0; min-height: 1em;"></p>
+        <div class="fixkosten-modal-actions">
+          <button class="fixkosten-modal-btn-save" id="cloudSubmit" onclick="submitCloud()">Anmelden</button>
+          <button class="fixkosten-modal-btn-cancel" onclick="closeCloudModal()">Abbrechen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="modal" id="userMenu" style="z-index: 99998;">
     <div class="modal-content" style="max-width: 350px; width: 90%;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
@@ -1152,6 +1195,13 @@ small { font-size: 12px; color: #999; }
         <p id="appUpdateStatus" style="font-size: 11px; line-height: 1.5; margin: 0.5rem 0 0 0; min-height: 1em; color: #1e40af;"></p>
       </div>
 
+      <!-- v4.13.0: Cloud-Konto -->
+      <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 8px; padding: 0.875rem; margin-bottom: 1.5rem;">
+        <p style="font-size: 12px; font-weight: 600; color: #166534; margin: 0 0 0.25rem 0;">☁️ Cloud-Konto</p>
+        <p style="font-size: 11px; color: #15803d; line-height: 1.5; margin: 0 0 0.75rem 0;" id="cloudMenuStatus">Nicht angemeldet.</p>
+        <button onclick="openCloudModal()" class="btn-success" style="width: 100%; padding: 0.5rem; font-size: 12px;" id="cloudMenuButton">☁️ Anmelden / Registrieren</button>
+      </div>
+
       <!-- Buttons -->
       <div style="display: flex; gap: 0.5rem;">
         <button onclick="openNewUserModal(); closeUserMenu();" class="btn-success" style="flex: 1;">+ Neuer Benutzer</button>
@@ -1181,7 +1231,7 @@ small { font-size: 12px; color: #999; }
         <p>Jahresplanung & Budgetierung deines Einkommens</p>
       </div>
       <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
-        <div class="version">v4.12.0</div>
+        <div class="version">v4.13.0</div>
         <div style="font-size: 10px; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.5px;">🔒 CLOSED BETA</div>
       </div>
     </div>
@@ -1762,9 +1812,21 @@ small { font-size: 12px; color: #999; }
         </p>
       </div>
 
-      <!-- v4.12.0: FEATURE - GÜLTIGKEIT AB JAHR + ÜBERSCHREIBEN PRO JAHR -->
+      <!-- v4.13.0: FEATURE - CLOUD-KONTO (LOGIN) -->
       <div class="settings-card" style="background: #f0fdf4; border-color: #86efac; border-width: 3px;">
-        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">✨ v4.12.0 - Feature: Fixkosten &amp; Sparkonten mit Gültigkeit (aktuell)</p>
+        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">✨ v4.13.0 - Feature: Cloud-Konto Login (aktuell)</p>
+        <p style="font-size: 12px; color: #15803d; line-height: 1.6; margin: 0;">
+          ✅ <strong>Neuer Bereich "☁️ Cloud-Konto"</strong> im Benutzermenü (☰): Registrieren, Anmelden, Abmelden mit E-Mail und Passwort (Supabase, Server in Frankfurt).<br>
+          ✅ <strong>Registrierung</strong> verlangt mindestens 10 Zeichen und eine Bestätigung per E-Mail-Link. Danach bleibt die Anmeldung auf dem Gerät erhalten.<br>
+          ℹ️ <strong>Noch kein Datensync:</strong> Deine Daten bleiben unverändert lokal auf dem Gerät und werden nicht in die Cloud übertragen. Der Login ist nur die Vorstufe.<br>
+          ℹ️ Funktioniert nur in der gehosteten Version (GitHub Pages), nicht in einer lokal geöffneten Datei.<br>
+          🧪 <strong>Was testen:</strong> Registrieren → Mail → Link öffnen (App meldet "E-Mail bestätigt") · Abmelden · Mit falschem Passwort anmelden (Fehlermeldung) · Auf dem iPhone anmelden · lokale Daten unverändert
+        </p>
+      </div>
+
+      <!-- v4.12.0: FEATURE - GÜLTIGKEIT AB JAHR + ÜBERSCHREIBEN PRO JAHR -->
+      <div class="settings-card" style="background: #f0fdf4; border-color: #86efac;">
+        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">✨ v4.12.0 - Feature: Fixkosten &amp; Sparkonten mit Gültigkeit</p>
         <p style="font-size: 12px; color: #15803d; line-height: 1.6; margin: 0;">
           ✅ <strong>Neu anlegen:</strong> Feld "Gilt für" - "Nur 2026" oder "Ab 2026 (alle folgenden Jahre)". Spätere Jahre übernehmen den Eintrag automatisch.<br>
           ✅ <strong>Ändern:</strong> "Nur dieses Jahr" (überschreibt nur dieses Jahr, Badge "angepasst"), "Ab diesem Jahr" oder "Alle Jahre". Beispiel: Miete steigt 2027 → Eintrag 2027 öffnen, Betrag ändern, "Ab 2027" wählen.<br>
@@ -6445,6 +6507,202 @@ document.addEventListener('keydown', function (e) {
   if (e.key === 'Escape' && activeKatIdx !== null) closeKatModal();
 });
 
+// ===== v4.13.0: CLOUD-KONTO (NUR LOGIN, KEIN DATENSYNC) =====
+// Auth direkt gegen Supabase (GoTrue REST), ohne externe Bibliothek. Der Schlüssel ist der öffentliche (publishable) Schlüssel und darf im Code stehen.
+const CLOUD_URL = 'https://bvaqoladcaysmimhbyed.supabase.co';
+const CLOUD_KEY = 'sb_publishable_H4XHMDt6SuDHwnTYqoWPeQ_N5EQtb_p';
+const CLOUD_SESSION_KEY = 'gp_cloud_session';
+let cloudMode = 'login';
+let cloudBusy = false;
+
+function cloudAvailable() { return location.protocol === 'http:' || location.protocol === 'https:'; }
+function cloudLoadSession() {
+  try { const s = JSON.parse(localStorage.getItem(CLOUD_SESSION_KEY) || 'null'); return s && s.access_token ? s : null; } catch (e) { return null; }
+}
+function cloudSaveSession(s) { try { localStorage.setItem(CLOUD_SESSION_KEY, JSON.stringify(s)); } catch (e) {} }
+function cloudClearSession() { try { localStorage.removeItem(CLOUD_SESSION_KEY); } catch (e) {} }
+function cloudSessionFrom(d, fallbackEmail) {
+  if (!d || !d.access_token) return null;
+  return {
+    access_token: d.access_token,
+    refresh_token: d.refresh_token || '',
+    expires_at: d.expires_at || (Math.floor(Date.now() / 1000) + (d.expires_in || 3600)),
+    email: (d.user && d.user.email) || fallbackEmail || ''
+  };
+}
+async function cloudApi(path, method, body, token) {
+  try {
+    const res = await fetch(CLOUD_URL + path, {
+      method: method,
+      headers: { 'apikey': CLOUD_KEY, 'Authorization': 'Bearer ' + (token || CLOUD_KEY), 'Content-Type': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined
+    });
+    let data = null;
+    try { data = await res.json(); } catch (e) {}
+    return { ok: res.ok, status: res.status, data: data };
+  } catch (e) {
+    return { ok: false, status: 0, data: null, network: true };
+  }
+}
+function cloudErrText(res) {
+  if (res.network) return 'Keine Verbindung zum Cloud-Server. Bitte Internet prüfen.';
+  const d = res.data || {};
+  const msg = String(d.error_description || d.msg || d.message || d.error || '');
+  const code = String(d.error_code || d.code || '');
+  if (res.status === 429 || /rate.?limit/i.test(msg + code)) return 'Zu viele Versuche. Bitte kurz warten und erneut probieren.';
+  if (/invalid login credentials/i.test(msg)) return 'E-Mail oder Passwort ist falsch.';
+  if (/email not confirmed/i.test(msg + code)) return 'Bitte zuerst die E-Mail-Adresse über den Link in der Bestätigungs-Mail bestätigen.';
+  if (/weak_password|password/i.test(code) || /weak|at least/i.test(msg)) return 'Das Passwort ist zu schwach oder zu kurz.';
+  if (/invalid.*email|email_address_invalid/i.test(msg + code)) return 'Diese E-Mail-Adresse wird nicht akzeptiert.';
+  return 'Fehler (' + res.status + '): ' + (msg || 'unbekannt');
+}
+async function cloudSignUp(email, pw) {
+  const res = await cloudApi('/auth/v1/signup', 'POST', { email: email, password: pw });
+  if (!res.ok) return { error: cloudErrText(res) };
+  const sess = cloudSessionFrom(res.data, email);
+  if (sess) { cloudSaveSession(sess); return { loggedIn: true }; }
+  return { confirm: true };
+}
+async function cloudSignIn(email, pw) {
+  const res = await cloudApi('/auth/v1/token?grant_type=password', 'POST', { email: email, password: pw });
+  if (!res.ok) return { error: cloudErrText(res) };
+  const sess = cloudSessionFrom(res.data, email);
+  if (!sess) return { error: 'Anmeldung fehlgeschlagen.' };
+  cloudSaveSession(sess);
+  return { loggedIn: true };
+}
+async function cloudRefreshIfNeeded() {
+  const s = cloudLoadSession();
+  if (!s || !s.refresh_token) return;
+  if (s.expires_at > Math.floor(Date.now() / 1000) + 60) return;
+  const res = await cloudApi('/auth/v1/token?grant_type=refresh_token', 'POST', { refresh_token: s.refresh_token });
+  if (res.ok) {
+    const n = cloudSessionFrom(res.data, s.email);
+    if (n) { if (!n.email) n.email = s.email; cloudSaveSession(n); }
+  } else if (!res.network && res.status >= 400 && res.status < 500) {
+    cloudClearSession();
+  }
+}
+async function cloudSignOutClick() {
+  const s = cloudLoadSession();
+  cloudClearSession();
+  renderCloudUi();
+  closeCloudModal();
+  if (s && s.access_token) cloudApi('/auth/v1/logout?scope=local', 'POST', null, s.access_token);
+  showSuccessMessage('Abgemeldet');
+}
+async function cloudHandleRedirect() {
+  // Bestätigungs-Link aus der E-Mail landet mit #access_token=... auf der App
+  const h = (location.hash || '').replace(/^#/, '');
+  if (!h || (h.indexOf('access_token=') < 0 && h.indexOf('error=') < 0)) return;
+  const params = new URLSearchParams(h);
+  try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
+  if (params.get('error')) {
+    showSuccessMessage('Bestätigung fehlgeschlagen oder Link abgelaufen. Bitte neu registrieren.');
+    return;
+  }
+  const token = params.get('access_token');
+  if (!token) return;
+  const res = await cloudApi('/auth/v1/user', 'GET', null, token);
+  const sess = {
+    access_token: token,
+    refresh_token: params.get('refresh_token') || '',
+    expires_at: parseInt(params.get('expires_at') || '0', 10) || (Math.floor(Date.now() / 1000) + (parseInt(params.get('expires_in') || '3600', 10))),
+    email: (res.ok && res.data && res.data.email) || ''
+  };
+  cloudSaveSession(sess);
+  renderCloudUi();
+  showSuccessMessage('E-Mail bestätigt. Du bist angemeldet.');
+}
+function renderCloudUi() {
+  const s = cloudLoadSession();
+  const status = document.getElementById('cloudMenuStatus');
+  const btn = document.getElementById('cloudMenuButton');
+  if (!status || !btn) return;
+  if (!cloudAvailable()) {
+    status.textContent = 'Nur in der gehosteten Version (GitHub Pages) verfügbar.';
+    btn.style.display = 'none';
+    return;
+  }
+  btn.style.display = '';
+  if (s) {
+    status.textContent = 'Angemeldet als ' + (s.email || 'Cloud-Konto') + '. Synchronisierung folgt in einer späteren Version.';
+    btn.textContent = '☁️ Konto verwalten';
+  } else {
+    status.textContent = 'Nicht angemeldet. Deine Daten bleiben auf diesem Gerät.';
+    btn.textContent = '☁️ Anmelden / Registrieren';
+  }
+}
+function setCloudMode(mode) {
+  cloudMode = mode;
+  const login = mode === 'login';
+  document.getElementById('cloudTabLogin').style.opacity = login ? '1' : '0.5';
+  document.getElementById('cloudTabSignup').style.opacity = login ? '0.5' : '1';
+  document.getElementById('cloudSubmit').textContent = login ? 'Anmelden' : 'Registrieren';
+  document.getElementById('cloudPwHint').style.display = login ? 'none' : 'block';
+  document.getElementById('cloudPassword').setAttribute('autocomplete', login ? 'current-password' : 'new-password');
+  setCloudMessage('', false);
+}
+function setCloudMessage(text, isError) {
+  const el = document.getElementById('cloudMessage');
+  if (!el) return;
+  el.textContent = text;
+  el.style.color = isError ? '#b91c1c' : '#166534';
+}
+function openCloudModal() {
+  if (!cloudAvailable()) { showSuccessMessage('Cloud-Konto nur in der gehosteten Version verfügbar.'); return; }
+  try { closeUserMenu(); } catch (e) {}
+  const s = cloudLoadSession();
+  document.getElementById('cloudViewIn').style.display = s ? 'block' : 'none';
+  document.getElementById('cloudViewOut').style.display = s ? 'none' : 'block';
+  if (s) document.getElementById('cloudViewEmail').textContent = s.email || '';
+  else { setCloudMode('login'); document.getElementById('cloudPassword').value = ''; }
+  document.getElementById('cloudModal').classList.add('active');
+}
+function closeCloudModal() {
+  const pw = document.getElementById('cloudPassword');
+  if (pw) pw.value = '';
+  document.getElementById('cloudModal').classList.remove('active');
+}
+async function submitCloud() {
+  if (cloudBusy) return;
+  const email = document.getElementById('cloudEmail').value.trim();
+  const pw = document.getElementById('cloudPassword').value;
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { setCloudMessage('Bitte eine gültige E-Mail-Adresse eingeben.', true); return; }
+  if (!pw) { setCloudMessage('Bitte ein Passwort eingeben.', true); return; }
+  if (cloudMode === 'signup' && pw.length < 10) { setCloudMessage('Das Passwort braucht mindestens 10 Zeichen.', true); return; }
+  cloudBusy = true;
+  const btn = document.getElementById('cloudSubmit');
+  btn.disabled = true;
+  setCloudMessage('Bitte warten …', false);
+  const r = cloudMode === 'signup' ? await cloudSignUp(email, pw) : await cloudSignIn(email, pw);
+  cloudBusy = false;
+  btn.disabled = false;
+  if (r.error) { setCloudMessage(r.error, true); return; }
+  document.getElementById('cloudPassword').value = '';
+  if (r.confirm) {
+    setCloudMessage('Fast fertig: Falls die Adresse gültig ist, haben wir eine Bestätigungs-Mail geschickt. Bitte den Link darin öffnen, danach hier anmelden.', false);
+    setCloudMode('login');
+    setCloudMessage('Fast fertig: Falls die Adresse gültig ist, haben wir eine Bestätigungs-Mail geschickt. Bitte den Link darin öffnen, danach hier anmelden.', false);
+    return;
+  }
+  renderCloudUi();
+  closeCloudModal();
+  showSuccessMessage('Angemeldet');
+}
+function initCloud() {
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && document.getElementById('cloudModal').classList.contains('active') && document.getElementById('cloudViewOut').style.display !== 'none') {
+      const t = e.target;
+      if (t && (t.id === 'cloudEmail' || t.id === 'cloudPassword')) { e.preventDefault(); submitCloud(); }
+    }
+    if (e.key === 'Escape' && document.getElementById('cloudModal').classList.contains('active')) closeCloudModal();
+  });
+  renderCloudUi();
+  if (!cloudAvailable()) return;
+  cloudHandleRedirect().then(() => cloudRefreshIfNeeded()).then(renderCloudUi).catch(() => {});
+}
+
 // ===== v4.12.0: GÜLTIGKEIT AB JAHR + ÜBERSCHREIBEN PRO JAHR =====
 // Datenmodell: Fixkosten/Sparkonten bleiben pro Jahr gespeichert (user.fixkosten[Jahr]).
 // Serien-Einträge haben zusätzlich: sid (Serien-ID), scope:'from', von (Startjahr), ov:true (in diesem Jahr einzeln angepasst).
@@ -8703,7 +8961,7 @@ function executeDeleteAllSparkonten(year) {
 // v4.8.3: DATEN-EXPORT / -IMPORT (JSON)
 // ============================================================
 const BACKUP_APP_NAME = 'Gehaltsplaner Pro';
-const BACKUP_APP_VERSION = '4.12.0';
+const BACKUP_APP_VERSION = '4.13.0';
 
 // Meldung nach dem Schließen des Menüs zeigen (alert() wird von offenen Modals blockiert)
 function dataBackupAlert(message) {
@@ -8990,6 +9248,7 @@ initUsers();
 checkImportAfterReload();
 initAppUpdate();
 initKatDragDrop();
+initCloud();
 </script>
 
 </body>
