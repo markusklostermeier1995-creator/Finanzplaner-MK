@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Gehaltsplaner CB">
   <meta name="theme-color" content="#3B82F6">
-  <title>Gehaltsplaner Pro v4.19.0 - Option A (Option A: Tab-Lokalisiert)</title>
+  <title>Gehaltsplaner Pro v4.20.1 - Option A (Option A: Tab-Lokalisiert)</title>
   <script>
     // Async load Chart.js with fallback
     const script = document.createElement('script');
@@ -1230,10 +1230,8 @@ small { font-size: 12px; color: #999; }
         <div class="schritt-row">
           <input type="number" id="standardGehaltInput" placeholder="4000" class="schritt-input" onchange="saveStandardGehaltInline()">
         </div>
-        <div style="margin-top: 6px;">
-          <button onclick="applyUserIncomeToStandard()" style="font-size: 11px; padding: 3px 8px; background: #f0f7ff; border: 1px solid #bfdbfe; border-radius: 4px; color: #1e40af; cursor: pointer;">↙️ Aus Benutzer übernehmen</button>
-        </div>
         <p class="schritt-hint" style="margin-top: 6px;">Gilt für alle Monate des Jahres, wenn nichts anderes gesetzt ist.</p>
+        <p class="schritt-hint" id="standardInheritNote" style="margin-top: 4px;"></p>
       </div>
 
       <div class="income-section">
@@ -1263,7 +1261,6 @@ small { font-size: 12px; color: #999; }
           <div class="user-avatar" id="menuUserAvatar" style="width: 50px; height: 50px; font-size: 20px;">?</div>
           <div style="flex: 1;">
             <div style="font-size: 14px; font-weight: 600; color: #333;" id="menuUserName">–</div>
-            <div style="font-size: 12px; color: #666;">Budget: €<span id="menuUserIncome">0</span>/Mo</div>
           </div>
         </div>
         <!-- Edit & Delete Buttons -->
@@ -1336,7 +1333,7 @@ small { font-size: 12px; color: #999; }
         <p>Jahresplanung & Budgetierung deines Einkommens</p>
       </div>
       <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
-        <div class="version">v4.19.0</div>
+        <div class="version">v4.20.1</div>
         <div style="font-size: 10px; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.5px;">🔒 CLOSED BETA</div>
       </div>
     </div>
@@ -1889,6 +1886,9 @@ small { font-size: 12px; color: #999; }
       </div>
     </div>
     <div id="tab4" class="tab-content">
+      <div id="releaseNotesHost"></div>
+      <!-- v4.20.1: Inhalt wird erst beim ersten Oeffnen des Tabs eingesetzt (ensureReleaseNotes) -->
+      <script type="text/html" id="releaseNotesSrc">
       <p style="font-size: 15px; font-weight: 600; margin-bottom: 1.5rem; color: #333;">📝 Release Notes</p>
       
       <div class="settings-card" style="background: #fee2e2; border-color: #fecaca;">
@@ -1898,9 +1898,46 @@ small { font-size: 12px; color: #999; }
         </p>
       </div>
 
+      <!-- v4.20.1: PERFORMANCE - SCHNELLERER START -->
+      <div class="settings-card" style="background: #fefce8; border-color: #fde047; border-width: 3px;">
+        <p style="font-size: 13px; font-weight: 700; color: #713f12; margin-bottom: 0.5rem;">⚡ v4.20.1 - Performance: Schnellerer Start (aktuell)</p>
+        <p style="font-size: 12px; color: #854d0e; line-height: 1.6; margin: 0;">
+          <strong>Release Notes:</strong> Der Tab wird jetzt erst beim ersten Öffnen aufgebaut statt bei jedem App-Start. Inhalt und Reihenfolge sind unverändert. Die Release Notes machten rund 41 % der Datei und die Hälfte aller Seitenelemente aus.<br>
+          <strong>Aufgeräumt:</strong> 11 Funktionen entfernt, die nirgends mehr aufgerufen wurden (Reste der alten Gehalts-Fenster und Fixkosten-Hilfsfunktionen).<br>
+          <strong>Messung (Testdaten, 3 Jahre):</strong> Seitenelemente 3.984 → ca. 1.950, Ladezeit ca. 25 % kürzer. Rechenlogik, Speichern und Daten sind unverändert.<br>
+          <strong>Was testen:</strong> App starten, alle Tabs durchklicken, Release Notes öffnen (alle Versionen bis v4.0 vorhanden, v4.20.1 oben), Monat/Jahr wechseln, Einkommen-Fenster, Fixkosten/Sparkonten anlegen, Cloud-Abgleich.
+        </p>
+      </div>
+
+      <!-- v4.20.0: FEATURE - EIN GEHALT STATT DREI EBENEN -->
+      <div class="settings-card" style="background: #f0fdf4; border-color: #86efac;">
+        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">💶 v4.20.0 - Feature: Einkommen vereinfacht</p>
+        <p style="font-size: 12px; color: #15803d; line-height: 1.6; margin: 0;">
+          <strong>Neu:</strong> Das Gehalt im Benutzerprofil entfällt (Profil bearbeiten, neuer Benutzer, Benutzerliste, Startseite). Das Einkommen kommt nur noch aus dem Standard fürs Jahr und, falls nötig, einer Abweichung für einen Monat.<br>
+          <strong>Neues Jahr:</strong> Hat ein Jahr noch keinen eigenen Standard, übernimmt es automatisch den des letzten Jahres mit Standard. Unter dem Einkommen steht dann "Standard (aus 2025)", im Einkommen-Fenster "Übernommen aus 2025". Beträge eingeben legt das Jahr fest.<br>
+          <strong>Alte Daten:</strong> Bisherige Einträge, Standards und Abweichungen bleiben unverändert. Hat ein Jahr weder eigenen noch früheren Standard, wird weiter das frühere Profil-Gehalt verwendet, damit kein Betrag plötzlich 0 wird.<br>
+          <strong>Neuer Benutzer:</strong> Startet ohne Einkommen. Unter dem Einkommen steht "Standard festlegen", Tippen öffnet das Einkommen-Fenster. Die Sparquote zeigt bei 0 Einkommen 0 %.<br>
+          <strong>Entfernt:</strong> Der Button "Aus Benutzer übernehmen".<br>
+          <strong>Was testen:</strong> Benutzermenü ohne "Budget …/Mo". Ein Jahr ohne Standard wählen: Einkommen = Standard des Vorjahres mit Hinweis. Standard ändern, Monat abweichend setzen. Neuen Benutzer anlegen: Einkommen 0, Sparquote 0 %.
+        </p>
+      </div>
+
+      <!-- v4.19.0.1: BUGFIX - EINKOMMEN FUER EINEN MONAT -->
+      <div class="settings-card" style="background: #fee2e2; border-color: #fca5a5;">
+        <p style="font-size: 13px; font-weight: 700; color: #991b1b; margin-bottom: 0.5rem;">🐛 v4.19.0.1 - Bugfix: Einkommen für einen Monat</p>
+        <p style="font-size: 12px; color: #b91c1c; line-height: 1.6; margin: 0;">
+          <strong>Problem 1:</strong> "Setzen" (abweichendes Einkommen für einen Monat) speicherte erst beim nächsten Speichern und zeigte ein störendes Pop-up.<br>
+          <strong>Fix:</strong> Wird jetzt sofort gespeichert. Statt des Pop-ups erscheint eine kurze Meldung, das Fenster schließt sich.<br>
+          <strong>Problem 2:</strong> "Standard" trug den aktuellen Standardbetrag fest für den Monat ein. Änderte man später den Jahres-Standard, blieb dieser Monat beim alten Betrag.<br>
+          <strong>Fix:</strong> "Standard" entfernt jetzt die Abweichung. Der Monat folgt wieder dem Jahres-Standard, auch bei späteren Änderungen. Ein leeres Feld mit "Setzen" macht dasselbe.<br>
+          <strong>Hinweis:</strong> Monate, in denen früher "Standard" gedrückt wurde, behalten ihren festen Betrag. Du kannst ihn im Einkommen-Fenster mit "Standard" zurücksetzen.<br>
+          <strong>Was testen:</strong> Einkommen-Kachel → "Nur Januar abweichend" 5000 → Setzen (Meldung, Kachel zeigt 5.000 und "abweichend"). Dann Kachel → Standard: Kachel zeigt wieder den Jahres-Standard.
+        </p>
+      </div>
+
       <!-- v4.19.0: LAYOUT - KOMPAKTE ZEITLEISTE -->
-      <div class="settings-card" style="background: #fff7ed; border-color: #fed7aa; border-width: 3px;">
-        <p style="font-size: 13px; font-weight: 700; color: #9a3412; margin-bottom: 0.5rem;">🧭 v4.19.0 - Layout: Kompakte Zeitleiste in der Budgetplanung (aktuell)</p>
+      <div class="settings-card" style="background: #fff7ed; border-color: #fed7aa;">
+        <p style="font-size: 13px; font-weight: 700; color: #9a3412; margin-bottom: 0.5rem;">🧭 v4.19.0 - Layout: Kompakte Zeitleiste in der Budgetplanung</p>
         <p style="font-size: 12px; color: #c2410c; line-height: 1.6; margin: 0;">
           <strong>Neu:</strong> Die vier Schritt-Kacheln (Jahr, Standard Gehalt, Monat, Monatlich) sind durch eine einzige Zeile ersetzt: ‹ Monat · Jahr ›. Mit den Pfeilen blätterst du Monat für Monat, auch über den Jahreswechsel.<br>
           <strong>Einkommen:</strong> Tippe auf die Kachel "Einkommen" (✎). Im Fenster stellst du den Standard für das Jahr und, falls nötig, einen abweichenden Betrag nur für diesen Monat ein. Unter dem Betrag steht, ob "Standard 2026" oder "abweichend in diesem Monat" gilt.<br>
@@ -4863,6 +4900,7 @@ small { font-size: 12px; color: #999; }
           • <strong>Release Notes</strong> sind detailliert dokumentiert
         </p>
       </div>
+      </script>
     </div>
 
     </div>
@@ -5051,7 +5089,6 @@ small { font-size: 12px; color: #999; }
   <div class="modal-content">
     <div class="modal-title">Neuer Benutzer</div>
     <div class="modal-input"><label>Name:</label><input type="text" id="newUserName" placeholder="Markus" autofocus></div>
-    <div class="modal-input"><label>Einkommen:</label><input type="number" id="newUserIncome" placeholder="4395" value="4395"></div>
     <div class="modal-buttons">
       <button onclick="closeNewUserModal()">Abbrechen</button>
       <button onclick="createUser()" class="btn-primary">Erstellen</button>
@@ -5064,7 +5101,6 @@ small { font-size: 12px; color: #999; }
   <div class="modal-content">
     <div class="modal-title">Benutzer bearbeiten</div>
     <div class="modal-input"><label>Name:</label><input type="text" id="editUserName" placeholder="Name"></div>
-    <div class="modal-input"><label>Einkommen (€/Monat):</label><input type="number" id="editUserIncome" placeholder="4395"></div>
     <div class="modal-buttons">
       <button onclick="closeEditUserModal()">Abbrechen</button>
       <button onclick="saveEditUser()" class="btn-primary">Speichern</button>
@@ -5542,15 +5578,6 @@ function buildInputCache() {
   });
 }
 
-function getInputValue(catName, subcat) {
-  const inputId = (catName + '_' + subcat).replace(/[^a-zA-Z0-9]/g, '');
-  const cached = inputCache[inputId];
-  if (cached) {
-    return parseFloat(cached.element.value) || 0;
-  }
-  const el = document.getElementById(inputId);
-  return el ? (parseFloat(el.value) || 0) : 0;
-}
 
 // ✨ v3.8.1: Debounced updateSummary to avoid excessive recalculations
 function debouncedUpdateSummary() {
@@ -5891,16 +5918,10 @@ function initUsers() {
   }
 }
 
-function createNewUser(name, income) {
+function createNewUser(name) {
   try {
     if (!name || name.trim().length === 0) {
       alert('Name ist erforderlich');
-      return false;
-    }
-    
-    const incomeNum = parseFloat(income);
-    if (isNaN(incomeNum) || incomeNum < 0) {
-      alert('Einkommen muss eine positive Zahl sein');
       return false;
     }
     
@@ -5908,7 +5929,6 @@ function createNewUser(name, income) {
     const newUser = {
       id: userId,
       name: name.trim(),
-      income: incomeNum,
       avatar: name.trim().charAt(0).toUpperCase(),
       monthlyStandard: {},
       fixkosten: {},
@@ -5942,11 +5962,9 @@ function renderUserUI() {
     // Aktualisiere Avatar und Namen
     const avatarEl = document.getElementById('menuUserAvatar');
     const nameEl = document.getElementById('menuUserName');
-    const incomeEl = document.getElementById('menuUserIncome');
     
     if (avatarEl) avatarEl.textContent = user.avatar || '?';
     if (nameEl) nameEl.textContent = user.name || 'Unbekannt';
-    if (incomeEl) incomeEl.textContent = Math.round(user.income || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     
     // Aktualisiere Benutzer-Menü
     renderUserMenuGrid();
@@ -5997,7 +6015,6 @@ function renderUserMenuGrid() {
            onmouseout="this.style.background='#f9f9f9'; this.style.borderColor='#ddd';">
         <div style="font-size: 20px; margin-bottom: 0.25rem;">${u.avatar || '?'}</div>
         <div style="font-weight: 600; color: #333; margin-bottom: 0.1rem;">${u.name || 'Unbekannt'}</div>
-        <div style="font-size: 11px; color: #666;">€${Math.round(u.income || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
       </button>
     `).join('');
     
@@ -6017,7 +6034,6 @@ function editCurrentUser() {
     
     // Fülle Modal mit aktuellen Daten
     document.getElementById('editUserName').value = user.name;
-    document.getElementById('editUserIncome').value = user.income;
     
     // Öffne Modal
     document.getElementById('editUserModal').classList.add('active');
@@ -6040,21 +6056,14 @@ function saveEditUser() {
     
     const user = allData.users[currentUser];
     const newName = document.getElementById('editUserName').value.trim();
-    const newIncome = parseFloat(document.getElementById('editUserIncome').value);
     
     if (!newName) {
       alert('Name ist erforderlich');
       return;
     }
     
-    if (isNaN(newIncome) || newIncome < 0) {
-      alert('Einkommen muss eine positive Zahl sein');
-      return;
-    }
-    
     // Aktualisiere Benutzer
     user.name = newName;
-    user.income = newIncome;
     user.avatar = newName.charAt(0).toUpperCase();
     
     saveAllData();
@@ -6193,10 +6202,8 @@ function showWelcomeScreen() {
   // v4.5.4 BUGFIX: User-Menü Header zurücksetzen
   const avatarEl = document.getElementById('menuUserAvatar');
   const nameEl = document.getElementById('menuUserName');
-  const incomeEl = document.getElementById('menuUserIncome');
   if (avatarEl) avatarEl.textContent = '?';
   if (nameEl) nameEl.textContent = '–';
-  if (incomeEl) incomeEl.textContent = '0';
 
   // v4.5.5 BUGFIX: Bestehende User direkt auf Welcome Screen anzeigen
   const existingSection = document.getElementById('welcomeExistingUsers');
@@ -6221,7 +6228,6 @@ function showWelcomeScreen() {
           font-size: 18px; font-weight: 700; flex-shrink: 0;">${u.avatar || '?'}</div>
         <div style="flex: 1;">
           <div style="font-size: 15px; font-weight: 600; color: #065f46;">${u.name || 'Unbekannt'}</div>
-          <div style="font-size: 12px; color: #059669;">Budget: €${Math.round(u.income || 0).toLocaleString('de-DE')}/Mo</div>
         </div>
         <div style="font-size: 13px; color: #10B981; font-weight: 600;">Anmelden →</div>
       </button>
@@ -6239,13 +6245,11 @@ function startFirstUser() {
 
 function createUser() {
   const name = document.getElementById('newUserName').value.trim();
-  const income = parseFloat(document.getElementById('newUserIncome').value) || 4395;
   if (!name) { alert('Name erforderlich!'); return; }
-  createNewUser(name, income);
+  createNewUser(name);
   currentUser = Object.keys(allData.users)[Object.keys(allData.users).length - 1];
   localStorage.setItem('lastActiveUser', currentUser); // v4.5.3 BUGFIX
   document.getElementById('newUserName').value = '';
-  document.getElementById('newUserIncome').value = '4395';
   closeNewUserModal();
   
   // Render user data
@@ -6338,6 +6342,25 @@ function switchMonth() {
 }
 
 // v4.19.0: Zeitleiste (Monat vor/zurück, auch über Jahresgrenzen) und Einkommen-Fenster
+function updateIncomeHint(monthKey) {
+  const h = document.getElementById('incomeHint');
+  const note = document.getElementById('standardInheritNote');
+  const info = getStandardInfo(currentYear);
+  const md = (allData.users[currentUser].data[currentYear] || {})[monthKey] || {};
+  if (h) {
+    if (md.monthlyIncome) h.textContent = 'abweichend in diesem Monat';
+    else if (!info.value) h.textContent = 'Standard festlegen';
+    else if (info.legacy) h.textContent = 'Standard (bisheriger Wert)';
+    else if (info.from !== currentYear) h.textContent = 'Standard (aus ' + info.from + ')';
+    else h.textContent = 'Standard ' + currentYear;
+  }
+  if (note) {
+    if (!info.value) note.textContent = 'Noch kein Standard festgelegt. Gib hier dein monatliches Einkommen ein.';
+    else if (info.legacy) note.textContent = 'Bisheriger Wert aus dem Profil. Gib einen Betrag ein, um ' + currentYear + ' festzulegen.';
+    else if (info.from !== currentYear) note.textContent = 'Übernommen aus ' + info.from + '. Gib einen Betrag ein, um ' + currentYear + ' festzulegen.';
+    else note.textContent = '';
+  }
+}
 function stepMonth(delta) {
   const ms = document.getElementById('monthSelect4a');
   const ys = document.getElementById('yearSelect4a');
@@ -6401,8 +6424,17 @@ function switchTab(i) {
     renderKategorienTab();
   }
   if (i === 4) {
-    // Release Notes - kein Handler nötig
+    ensureReleaseNotes();   // v4.20.1: Release Notes erst beim ersten Oeffnen aufbauen
   }
+}
+
+// v4.20.1: Release Notes liegen als Text im Dokument und werden einmalig in den Tab eingesetzt
+function ensureReleaseNotes() {
+  const host = document.getElementById('releaseNotesHost');
+  const src = document.getElementById('releaseNotesSrc');
+  if (!host || !src || host.dataset.loaded === '1') return;
+  host.innerHTML = src.textContent;
+  host.dataset.loaded = '1';
 }
 
 function updateYearDisplay() {
@@ -6521,7 +6553,7 @@ function renderInputs() {
     if (standardInput) {
       const user = allData.users[currentUser];
       const hasYearStandard = user.monthlyStandard && user.monthlyStandard[currentYear];
-      standardInput.value = hasYearStandard ? user.monthlyStandard[currentYear] : (user.income || '');
+      standardInput.value = getStandardInfo(currentYear).value || '';   // v4.20.0: Vorjahres-Standard statt Benutzer-Gehalt
     }
     
     // v4.5.2: Initialize year display in standard gehalt
@@ -7724,9 +7756,19 @@ function initKatDragDrop() {
   cont.addEventListener('dragstart', e => e.preventDefault());
 }
 
+// v4.20.0: Standard fuers Jahr. Rueckfall: letzter frueherer Jahres-Standard; danach (nur alte Daten) das fruehere Benutzer-Gehalt; sonst 0.
+function getStandardInfo(year) {
+  const u = allData.users[currentUser];
+  if (!u.monthlyStandard) u.monthlyStandard = {};
+  const ms = u.monthlyStandard;
+  if (ms[year] > 0) return { value: ms[year], from: year, legacy: false };
+  const earlier = Object.keys(ms).map(Number).filter(y => y < year && ms[y] > 0).sort((a, b) => b - a);
+  if (earlier.length) return { value: ms[earlier[0]], from: earlier[0], legacy: false };
+  if (u.income > 0) return { value: u.income, from: null, legacy: true };
+  return { value: 0, from: null, legacy: false };
+}
 function getMonthlyStandard() {
-  if (!allData.users[currentUser].monthlyStandard) allData.users[currentUser].monthlyStandard = {};
-  return allData.users[currentUser].monthlyStandard[currentYear] || allData.users[currentUser].income;
+  return getStandardInfo(currentYear).value;
 }
 
 function getMonthIncome(monthKey) {
@@ -7736,23 +7778,6 @@ function getMonthIncome(monthKey) {
   return getMonthlyStandard();
 }
 
-function getFixkostenByCategory(catName) {
-  ensureSerienForYear('fixkosten', currentYear);
-  if (!allData.users[currentUser].fixkosten) allData.users[currentUser].fixkosten = {};
-  const fixkosten = serienList('fixkosten');
-  const catFixkosten = fixkosten.filter(item => item.category === catName && item.type === 'jahresausgabe');
-  const summe = catFixkosten.reduce((acc, item) => acc + (parseFloat(item.betrag) || 0), 0);
-  return Math.round((summe / 12) * 100) / 100;
-}
-
-function getSparkontenByCategory(catName) {
-  ensureSerienForYear('sparkonten', currentYear);
-  if (!allData.users[currentUser].sparkonten) allData.users[currentUser].sparkonten = {};
-  const sparkonten = serienList('sparkonten');
-  const catSparkonten = sparkonten.filter(item => item.category === catName && item.type === 'jahresausgabe');
-  const summe = catSparkonten.reduce((acc, item) => acc + (parseFloat(item.betrag) || 0), 0);
-  return Math.round((summe / 12) * 100) / 100;
-}
 
 function getFixkostenTotal() {
   ensureSerienForYear('fixkosten', currentYear);
@@ -7829,26 +7854,32 @@ function setMonthlyIncome() {
   const income = parseFloat(document.getElementById('monthlyIncome').value);
   if (!allData.users[currentUser].data[currentYear]) allData.users[currentUser].data[currentYear] = {};
   if (!allData.users[currentUser].data[currentYear][monthKey]) allData.users[currentUser].data[currentYear][monthKey] = {};
+  let msg;
   if (income && income > 0) {
     allData.users[currentUser].data[currentYear][monthKey].monthlyIncome = income;
-    alert(`Gehalt für ${monthKey} auf €${income.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} gesetzt`);
+    msg = `Einkommen ${monthKey} ${currentYear}: ${income.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (abweichend)`;
   } else {
     delete allData.users[currentUser].data[currentYear][monthKey].monthlyIncome;
-    alert(`Gehalt für ${monthKey} zurückgesetzt`);
+    msg = `${monthKey} ${currentYear} nutzt wieder den Standard`;
   }
+  saveAllData();      // v4.19.0.1: sofort speichern
   updateSummary();
+  closeIncomeModal();
+  showSuccessMessage(msg);  // v4.19.0.1: Meldung statt alert()
 }
 
 function resetToStandardIncome() {
   const monthKey = MONTHS[currentMonth];
   const monthlyIncome = getMonthlyStandard();
-  document.getElementById('monthlyIncome').value = monthlyIncome;
   if (!allData.users[currentUser].data[currentYear]) allData.users[currentUser].data[currentYear] = {};
   if (!allData.users[currentUser].data[currentYear][monthKey]) allData.users[currentUser].data[currentYear][monthKey] = {};
-  allData.users[currentUser].data[currentYear][monthKey].monthlyIncome = monthlyIncome;
+  // v4.19.0.1: Abweichung entfernen (statt den Standardwert fest einzutragen), damit spaetere Aenderungen des Standards wirken
+  delete allData.users[currentUser].data[currentYear][monthKey].monthlyIncome;
+  document.getElementById('monthlyIncome').value = '';
   saveAllData();
   updateSummary();
-  alert(`${monthKey} auf Standard (€${monthlyIncome.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}) gesetzt`);
+  closeIncomeModal();
+  showSuccessMessage(`${monthKey} ${currentYear} nutzt wieder den Standard (${(monthlyIncome || 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`);
 }
 
 function saveMonthlyStandardIncome() {
@@ -7873,49 +7904,6 @@ function updateYearSettingDisplay() {
 // v4.4.0: NEW INTEGRATED STANDARD GEHALT FUNCTIONS
 // ============================================================
 
-function saveStandardIncomeIntegrated() {
-  const yearSelect = document.getElementById('yearStandardSelect');
-  const incomeInput = document.getElementById('standardIncomeInput');
-  const selectedYear = parseInt(yearSelect.value);
-  const income = parseFloat(incomeInput.value);
-  
-  if (!allData.users[currentUser].monthlyStandard) {
-    allData.users[currentUser].monthlyStandard = {};
-  }
-  
-  if (income && income > 0) {
-    allData.users[currentUser].monthlyStandard[selectedYear] = income;
-    saveAllData();
-    
-    // Update displays
-    document.getElementById('currentStandardDisplay').textContent = income.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    
-    // Show success message
-    const successMsg = document.getElementById('standardSuccessMsg');
-    successMsg.textContent = `✅ Standard Gehalt ${selectedYear}: €${income.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} gespeichert!`;
-    successMsg.style.display = 'block';
-    
-    // Auto-hide after 3 seconds
-    setTimeout(() => {
-      successMsg.style.display = 'none';
-    }, 3000);
-    
-    // Update the monthly income display
-    updateYearDisplay();
-  } else {
-    alert('⚠️ Bitte geben Sie einen gültigen Betrag ein!');
-  }
-}
-
-function updateYearStandardDisplay() {
-  const yearSelect = document.getElementById('yearStandardSelect');
-  const selectedYear = parseInt(yearSelect.value);
-  const standardIncome = allData.users[currentUser].monthlyStandard?.[selectedYear] || 4395;
-  
-  document.getElementById('yearStandardLabel').textContent = selectedYear;
-  document.getElementById('currentStandardDisplay').textContent = standardIncome.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  document.getElementById('standardIncomeInput').value = standardIncome;
-}
 
 function renderFixkosten() {
   try {
@@ -8223,17 +8211,6 @@ function addSparkonten() {
   openSparkontenModal(-1, true);
 }
 
-function updateFixkosten(idx, field, value) {
-  if (!allData.users[currentUser].fixkosten[currentYear]) return;
-  if (field === 'betrag') {
-    allData.users[currentUser].fixkosten[currentYear][idx][field] = parseFloat(value) || 0;
-  } else {
-    allData.users[currentUser].fixkosten[currentYear][idx][field] = value;
-  }
-  saveAllData();
-  renderFixkosten();
-  updateSummary();
-}
 
 // Modal Funktionen
 function openFixkostenModal(idx, isNew = false) {
@@ -8701,11 +8678,6 @@ function deleteOrphanedSparkonten(idxList) {
   showSparkontenSuccessMessage(`✓ ${idxList.length} verwaiste Einträge gelöscht!`);
 }
 
-function updateFixkostenCharts() {
-  // Aktualisiert nur die Charts und KPIs, ohne Accordion zu schließen
-  waitForChartJS(() => renderFixkostenChart());
-  updateFixkostenMonthlyDisplay();
-}
 
 function updateFixkostenMonthlyDisplay() {
   const totals = getFixkostenTotal();
@@ -9172,11 +9144,11 @@ function updateSummary() {
     const totalSavings = sparenAmount + fixkostenTotals.totalSpar + sparkontenTotals.totalSpar;
     const saldo = income - ausgaben - totalSavings;
     
-    const saverate = Math.round((totalSavings / income) * 100);
+    const saverate = income > 0 ? Math.round((totalSavings / income) * 100) : 0;   // v4.20.0: Einkommen kann 0 sein (neuer Benutzer)
     
     // v4.7.1: Batch DOM updates via DOM_CACHE (kein getElementById mehr in Hot-Path)
     if (DOM_CACHE.kpiIncome) DOM_CACHE.kpiIncome.textContent = '€' + Math.round(income).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    { const _h = document.getElementById('incomeHint'); if (_h) { const _md = (allData.users[currentUser].data[currentYear] || {})[monthKey] || {}; _h.textContent = _md.monthlyIncome ? 'abweichend in diesem Monat' : 'Standard ' + currentYear; } }
+    updateIncomeHint(monthKey);
     if (DOM_CACHE.kpiSpent) DOM_CACHE.kpiSpent.textContent = '€' + Math.round(ausgaben).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     if (DOM_CACHE.kpiRemaining) DOM_CACHE.kpiRemaining.textContent = '€' + Math.round(totalSavings).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     if (DOM_CACHE.kpiSaverate) DOM_CACHE.kpiSaverate.textContent = saverate + '%';
@@ -9453,23 +9425,6 @@ function updateCopyMessage(type, category) {
     `<strong>${count}</strong> ${type} werden von ${sourceYear} nach ${currentYear} kopiert`;
 }
 
-function populateTargetYears(sourceYear) {
-  // Diese Funktion ist nicht mehr nötig (v4.0.9.3+)
-  // Target Year wird jetzt automatisch auf currentYear gesetzt
-}
-
-function openCopyConfirmationModal(type, count, fromYear, toYear, category) {
-  const modal = document.getElementById("copyConfirmationModal");
-  const message = `<strong>${count}</strong> ${type} von ${fromYear} nach ${toYear} kopieren?`;
-  document.getElementById("copyMessage").innerHTML = message;
-  
-  document.getElementById("confirmCopyBtn").onclick = () => {
-    executeCopy(category, fromYear, toYear);
-    closeCopyConfirmationModal();
-  };
-  
-  modal.style.display = "block";
-}
 
 function closeCopyConfirmationModal() {
   document.getElementById("copyConfirmationModal").style.display = "none";
@@ -9479,14 +9434,6 @@ function closeCopyConfirmationModal() {
 // v4.4.2: STANDARD GEHALT MODAL FUNCTIONS
 // ============================================================
 
-function openStandardGehaltModal() {
-  // Populate year select wenn Modal öffnet
-  populateModalYearSelect();
-  updateModalYearDisplay();
-  
-  // Modal anzeigen
-  document.getElementById('standardGehaltModal').style.display = 'flex';
-}
 
 function closeStandardGehaltModal() {
   document.getElementById('standardGehaltModal').style.display = 'none';
@@ -9522,48 +9469,6 @@ function updateModalYearDisplay() {
   document.getElementById('modalStandardIncomeInput').value = standardIncome;
 }
 
-function saveStandardGehaltModal() {
-  const yearSelect = document.getElementById('modalYearStandardSelect');
-  const incomeInput = document.getElementById('modalStandardIncomeInput');
-  const selectedYear = parseInt(yearSelect.value);
-  const income = parseFloat(incomeInput.value);
-  
-  if (!allData.users[currentUser].monthlyStandard) {
-    allData.users[currentUser].monthlyStandard = {};
-  }
-  
-  if (income && income > 0) {
-    // Speichern
-    allData.users[currentUser].monthlyStandard[selectedYear] = income;
-    saveAllData();
-    
-    // Update display
-    document.getElementById('modalCurrentStandardDisplay').textContent = income.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    
-    // Success Message zeigen
-    const successMsg = document.getElementById('standardGehaltSuccess');
-    document.getElementById('standardGehaltSuccessText').textContent = 
-      `✅ Standard Gehalt ${selectedYear}: €${income.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} gespeichert!`;
-    successMsg.style.display = 'block';
-    successMsg.style.animation = 'slideIn 0.3s ease-out';
-    
-    // Auto-hide nach 3 Sekunden
-    setTimeout(() => {
-      successMsg.style.animation = 'slideOut 0.3s ease-out';
-      setTimeout(() => {
-        successMsg.style.display = 'none';
-      }, 300);
-    }, 3000);
-    
-    // Modal schließen
-    closeStandardGehaltModal();
-    
-    // Update year display wenn nötig
-    updateYearDisplay();
-  } else {
-    alert('⚠️ Bitte geben Sie einen gültigen Betrag ein!');
-  }
-}
 
 // v4.8.2.4: saveStandardGehaltInline — wird via onchange aufgerufen (kein Button mehr)
 function saveStandardGehaltInline() {
@@ -9580,23 +9485,6 @@ function saveStandardGehaltInline() {
     updateYearDisplay();
     showSuccessMessage(`✅ Standard ${currentYear}: €${income.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} gespeichert!`);
   }
-}
-
-// v4.8.2.3: Benutzer-Gehalt direkt als Standard speichern (One-Click)
-function applyUserIncomeToStandard() {
-  const userIncome = allData.users[currentUser].income;
-  if (!userIncome || userIncome <= 0) {
-    alert('⚠️ Kein Benutzer-Gehalt gesetzt!');
-    return;
-  }
-  if (!allData.users[currentUser].monthlyStandard) {
-    allData.users[currentUser].monthlyStandard = {};
-  }
-  allData.users[currentUser].monthlyStandard[currentYear] = userIncome;
-  saveAllData();
-  updateYearDisplay();
-  renderInputs();
-  showSuccessMessage(`✅ Standard ${currentYear}: €${userIncome.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} übernommen!`);
 }
 
 function executeCopy(category, fromYear, toYear) {
@@ -9723,7 +9611,7 @@ function executeDeleteAllSparkonten(year) {
 // v4.8.3: DATEN-EXPORT / -IMPORT (JSON)
 // ============================================================
 const BACKUP_APP_NAME = 'Gehaltsplaner Pro';
-const BACKUP_APP_VERSION = '4.19.0';
+const BACKUP_APP_VERSION = '4.20.0';
 
 // Meldung nach dem Schließen des Menüs zeigen (alert() wird von offenen Modals blockiert)
 function dataBackupAlert(message) {
