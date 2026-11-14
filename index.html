@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Gehaltsplaner CB">
   <meta name="theme-color" content="#3B82F6">
-  <title>Gehaltsplaner Pro v4.16.1 - Option A (Option A: Tab-Lokalisiert)</title>
+  <title>Gehaltsplaner Pro v4.17.0 - Option A (Option A: Tab-Lokalisiert)</title>
   <script>
     // Async load Chart.js with fallback
     const script = document.createElement('script');
@@ -1170,15 +1170,35 @@ small { font-size: 12px; color: #999; }
           <label class="fixkosten-modal-label">E-Mail</label>
           <input type="email" id="cloudEmail" autocomplete="username" autocapitalize="off" autocorrect="off" placeholder="name@beispiel.de" />
         </div>
-        <div class="fixkosten-modal-field">
+        <div class="fixkosten-modal-field" id="cloudPwField">
           <label class="fixkosten-modal-label">Passwort</label>
           <input type="password" id="cloudPassword" autocomplete="current-password" placeholder="Passwort" />
           <p id="cloudPwHint" style="display: none; font-size: 11px; color: #666; margin: 0.35rem 0 0 0;">Mindestens 10 Zeichen. Am besten ein langes, einmaliges Passwort aus dem Passwort-Manager.</p>
         </div>
+        <p id="cloudForgotWrap" style="margin: -0.25rem 0 0.75rem 0; font-size: 12px;"><a href="#" id="cloudForgotLink" onclick="setCloudMode('reset'); return false;" style="color: #3B82F6;">Passwort vergessen?</a></p>
+        <p id="cloudResetHint" style="display: none; font-size: 12px; color: #444; line-height: 1.5; margin: 0 0 0.75rem 0;">Wir senden dir einen Link zum Zurücksetzen an diese E-Mail-Adresse.</p>
         <p id="cloudMessage" style="font-size: 12px; line-height: 1.5; margin: 0 0 1rem 0; min-height: 1em;"></p>
         <div class="fixkosten-modal-actions">
           <button class="fixkosten-modal-btn-save" id="cloudSubmit" onclick="submitCloud()">Anmelden</button>
           <button class="fixkosten-modal-btn-cancel" onclick="closeCloudModal()">Abbrechen</button>
+        </div>
+      </div>
+
+      <div id="cloudViewNewPw" style="display: none;">
+        <p style="font-size: 13px; font-weight: 600; margin: 0 0 0.25rem 0;">Neues Passwort festlegen</p>
+        <p style="font-size: 12px; color: #666; margin: 0 0 1rem 0;" id="cloudNewPwEmail"></p>
+        <div class="fixkosten-modal-field">
+          <label class="fixkosten-modal-label">Neues Passwort</label>
+          <input type="password" id="cloudNewPw1" autocomplete="new-password" placeholder="Mindestens 10 Zeichen" />
+        </div>
+        <div class="fixkosten-modal-field">
+          <label class="fixkosten-modal-label">Passwort wiederholen</label>
+          <input type="password" id="cloudNewPw2" autocomplete="new-password" placeholder="Passwort wiederholen" />
+        </div>
+        <p id="cloudNewPwMessage" style="font-size: 12px; line-height: 1.5; margin: 0 0 1rem 0; min-height: 1em;"></p>
+        <div class="fixkosten-modal-actions">
+          <button class="fixkosten-modal-btn-save" id="cloudNewPwSubmit" onclick="submitNewPassword()">Passwort speichern</button>
+          <button class="fixkosten-modal-btn-cancel" onclick="cloudCancelRecovery()">Abbrechen</button>
         </div>
       </div>
     </div>
@@ -1270,7 +1290,7 @@ small { font-size: 12px; color: #999; }
         <p>Jahresplanung & Budgetierung deines Einkommens</p>
       </div>
       <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
-        <div class="version">v4.16.1</div>
+        <div class="version">v4.17.0</div>
         <div style="font-size: 10px; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.5px;">🔒 CLOSED BETA</div>
       </div>
     </div>
@@ -1851,9 +1871,21 @@ small { font-size: 12px; color: #999; }
         </p>
       </div>
 
-      <!-- v4.16.1: BUGFIX - FIXKOSTEN/SPARKONTEN-FELDER IN DER BUDGETPLANUNG -->
+      <!-- v4.17.0: FEATURE - PASSWORT VERGESSEN -->
       <div class="settings-card" style="background: #f0fdf4; border-color: #86efac; border-width: 3px;">
-        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">🐛 v4.16.1 - Bugfix: Fixkosten-/Sparkonten-Felder (aktuell)</p>
+        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">🔑 v4.17.0 - Feature: Passwort vergessen (aktuell)</p>
+        <p style="font-size: 12px; color: #15803d; line-height: 1.6; margin: 0;">
+          <strong>Link anfordern:</strong> Im Cloud-Konto unter "Anmelden" gibt es jetzt "Passwort vergessen?". Du gibst deine E-Mail ein und bekommst einen Link zum Zurücksetzen. Die App antwortet immer gleich, egal ob die Adresse existiert.<br>
+          <strong>Neues Passwort:</strong> Der Link öffnet die App und zeigt "Neues Passwort festlegen" (mindestens 10 Zeichen, zweimal eingeben). Danach bist du angemeldet. Deine Daten bleiben unverändert.<br>
+          <strong>Abgelaufen/benutzt:</strong> Ein alter oder schon benutzter Link zeigt eine Meldung und du kannst einen neuen anfordern.<br>
+          <strong>Hinweis:</strong> Der Link öffnet sich im Browser (Safari), nicht in der Dock-/Home-Bildschirm-App. Danach meldest du dich in der App mit dem neuen Passwort an.<br>
+          <strong>Voraussetzung in Supabase:</strong> Site URL und Redirect-URL müssen auf die GitHub-Pages-Adresse der App zeigen.
+        </p>
+      </div>
+
+      <!-- v4.16.1: BUGFIX - FIXKOSTEN/SPARKONTEN-FELDER IN DER BUDGETPLANUNG -->
+      <div class="settings-card" style="background: #f0fdf4; border-color: #86efac;">
+        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">🐛 v4.16.1 - Bugfix: Fixkosten-/Sparkonten-Felder</p>
         <p style="font-size: 12px; color: #15803d; line-height: 1.6; margin: 0;">
           <strong>Problem:</strong> Ein in der Budgetplanung getippter Betrag bei STANDARD/SPAREN-Feldern wurde in der Kategorie-Karte mitgezählt, aber nicht in Ausgaben und nicht gespeichert (z.B. Wohnen 900 vs. Ausgaben 800).<br>
           <strong>Fix:</strong> Diese Felder sind jetzt schreibgeschützt und zeigen immer den Betrag aus dem Tab Fixkosten bzw. Sparkonten. Karte, Modal und Ausgaben stimmen so immer überein.<br>
@@ -6600,6 +6632,7 @@ const CLOUD_URL = 'https://bvaqoladcaysmimhbyed.supabase.co';
 const CLOUD_KEY = 'sb_publishable_H4XHMDt6SuDHwnTYqoWPeQ_N5EQtb_p';
 const CLOUD_SESSION_KEY = 'gp_cloud_session';
 let cloudMode = 'login';
+let cloudRecovery = null; // v4.17.0
 let cloudBusy = false;
 
 function cloudAvailable() { return location.protocol === 'http:' || location.protocol === 'https:'; }
@@ -6686,12 +6719,24 @@ async function cloudHandleRedirect() {
   const params = new URLSearchParams(h);
   try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
   if (params.get('error')) {
+    if (params.get('error_code') === 'otp_expired' || /recovery|reset/i.test(h)) { showSuccessMessage('Der Link ist abgelaufen oder wurde schon benutzt. Bitte "Passwort vergessen?" erneut anfordern.'); return; }
     showSuccessMessage('Bestätigung fehlgeschlagen oder Link abgelaufen. Bitte neu registrieren.');
     return;
   }
   const token = params.get('access_token');
   if (!token) return;
   const res = await cloudApi('/auth/v1/user', 'GET', null, token);
+  if (params.get('type') === 'recovery') {
+    // v4.17.0: Link zum Zuruecksetzen -> Token nur im Speicher halten, Session erst nach neuem Passwort speichern
+    cloudRecovery = {
+      access_token: token,
+      refresh_token: params.get('refresh_token') || '',
+      expires_at: parseInt(params.get('expires_at') || '0', 10) || (Math.floor(Date.now() / 1000) + (parseInt(params.get('expires_in') || '3600', 10))),
+      email: (res.ok && res.data && res.data.email) || ''
+    };
+    cloudShowNewPw();
+    return;
+  }
   const sess = {
     access_token: token,
     refresh_token: params.get('refresh_token') || '',
@@ -7070,10 +7115,14 @@ function renderCloudUi() {
 function setCloudMode(mode) {
   cloudMode = mode;
   const login = mode === 'login';
+  const reset = mode === 'reset';
   document.getElementById('cloudTabLogin').style.opacity = login ? '1' : '0.5';
-  document.getElementById('cloudTabSignup').style.opacity = login ? '0.5' : '1';
-  document.getElementById('cloudSubmit').textContent = login ? 'Anmelden' : 'Registrieren';
-  document.getElementById('cloudPwHint').style.display = login ? 'none' : 'block';
+  document.getElementById('cloudTabSignup').style.opacity = mode === 'signup' ? '1' : '0.5';
+  document.getElementById('cloudSubmit').textContent = reset ? 'Link senden' : (login ? 'Anmelden' : 'Registrieren');
+  document.getElementById('cloudPwHint').style.display = mode === 'signup' ? 'block' : 'none';
+  document.getElementById('cloudPwField').style.display = reset ? 'none' : '';
+  document.getElementById('cloudForgotWrap').style.display = login ? '' : 'none';
+  document.getElementById('cloudResetHint').style.display = reset ? 'block' : 'none';
   document.getElementById('cloudPassword').setAttribute('autocomplete', login ? 'current-password' : 'new-password');
   setCloudMessage('', false);
 }
@@ -7089,6 +7138,7 @@ function openCloudModal() {
   const s = cloudLoadSession();
   document.getElementById('cloudViewIn').style.display = s ? 'block' : 'none';
   document.getElementById('cloudViewOut').style.display = s ? 'none' : 'block';
+  document.getElementById('cloudViewNewPw').style.display = 'none';
   if (s) { document.getElementById('cloudViewEmail').textContent = s.email || ''; document.getElementById('cloudCheckResult').textContent = ''; document.getElementById('cloudSyncResult').textContent = ''; cloudRenderSyncStatus(); const _t = document.getElementById('cloudAutoToggle'); if (_t) _t.checked = cloudAutoEnabled(); }
   else { setCloudMode('login'); document.getElementById('cloudPassword').value = ''; }
   document.getElementById('cloudModal').classList.add('active');
@@ -7103,6 +7153,20 @@ async function submitCloud() {
   const email = document.getElementById('cloudEmail').value.trim();
   const pw = document.getElementById('cloudPassword').value;
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { setCloudMessage('Bitte eine gültige E-Mail-Adresse eingeben.', true); return; }
+  if (cloudMode === 'reset') {
+    cloudBusy = true;
+    const rb = document.getElementById('cloudSubmit');
+    rb.disabled = true;
+    setCloudMessage('Bitte warten …', false);
+    const rr = await cloudApi('/auth/v1/recover?redirect_to=' + encodeURIComponent(location.origin + location.pathname), 'POST', { email: email });
+    cloudBusy = false;
+    rb.disabled = false;
+    if (rr.network) { setCloudMessage(cloudErrText(rr), true); return; }
+    if (rr.status === 429) { setCloudMessage('Zu viele Anfragen. Bitte etwa eine Stunde warten und dann erneut probieren.', true); return; }
+    // Immer dieselbe Antwort, egal ob die Adresse existiert
+    setCloudMessage('Falls ein Konto mit dieser Adresse existiert, haben wir einen Link zum Zurücksetzen geschickt. Bitte auch den Spam-Ordner prüfen.', false);
+    return;
+  }
   if (!pw) { setCloudMessage('Bitte ein Passwort eingeben.', true); return; }
   if (cloudMode === 'signup' && pw.length < 10) { setCloudMessage('Das Passwort braucht mindestens 10 Zeichen.', true); return; }
   cloudBusy = true;
@@ -7124,11 +7188,69 @@ async function submitCloud() {
   closeCloudModal();
   showSuccessMessage('Angemeldet');
 }
+function cloudShowNewPw() {
+  if (!cloudRecovery) return;
+  try { closeUserMenu(); } catch (e) {}
+  document.getElementById('cloudViewIn').style.display = 'none';
+  document.getElementById('cloudViewOut').style.display = 'none';
+  document.getElementById('cloudViewNewPw').style.display = 'block';
+  document.getElementById('cloudNewPwEmail').textContent = cloudRecovery.email ? ('Konto: ' + cloudRecovery.email) : '';
+  document.getElementById('cloudNewPw1').value = '';
+  document.getElementById('cloudNewPw2').value = '';
+  document.getElementById('cloudNewPwMessage').textContent = '';
+  document.getElementById('cloudModal').classList.add('active');
+}
+function cloudNewPwMessage(text, isError) {
+  const el = document.getElementById('cloudNewPwMessage');
+  el.textContent = text;
+  el.style.color = isError ? '#b91c1c' : '#166534';
+}
+function cloudCancelRecovery() {
+  cloudRecovery = null;
+  document.getElementById('cloudNewPw1').value = '';
+  document.getElementById('cloudNewPw2').value = '';
+  document.getElementById('cloudViewNewPw').style.display = 'none';
+  closeCloudModal();
+}
+async function submitNewPassword() {
+  if (cloudBusy || !cloudRecovery) return;
+  const p1 = document.getElementById('cloudNewPw1').value;
+  const p2 = document.getElementById('cloudNewPw2').value;
+  if (p1.length < 10) { cloudNewPwMessage('Das Passwort braucht mindestens 10 Zeichen.', true); return; }
+  if (p1 !== p2) { cloudNewPwMessage('Die beiden Passwörter sind nicht gleich.', true); return; }
+  cloudBusy = true;
+  const btn = document.getElementById('cloudNewPwSubmit');
+  btn.disabled = true;
+  cloudNewPwMessage('Bitte warten …', false);
+  const res = await cloudApi('/auth/v1/user', 'PUT', { password: p1 }, cloudRecovery.access_token);
+  cloudBusy = false;
+  btn.disabled = false;
+  if (!res.ok) {
+    const d = res.data || {};
+    const m = String(d.error_description || d.msg || d.message || '');
+    if (/different from the old/i.test(m) || d.error_code === 'same_password') cloudNewPwMessage('Das neue Passwort muss sich vom alten unterscheiden.', true);
+    else if (res.status === 401 || res.status === 403) cloudNewPwMessage('Der Link ist abgelaufen. Bitte "Passwort vergessen?" erneut anfordern.', true);
+    else cloudNewPwMessage(cloudErrText(res), true);
+    return;
+  }
+  cloudSaveSession(cloudRecovery);
+  cloudRecovery = null;
+  document.getElementById('cloudNewPw1').value = '';
+  document.getElementById('cloudNewPw2').value = '';
+  document.getElementById('cloudViewNewPw').style.display = 'none';
+  renderCloudUi();
+  closeCloudModal();
+  showSuccessMessage('Neues Passwort gespeichert. Du bist angemeldet.');
+}
 function initCloud() {
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Enter' && document.getElementById('cloudModal').classList.contains('active') && document.getElementById('cloudViewOut').style.display !== 'none') {
       const t = e.target;
       if (t && (t.id === 'cloudEmail' || t.id === 'cloudPassword')) { e.preventDefault(); submitCloud(); }
+    }
+    if (e.key === 'Enter' && document.getElementById('cloudModal').classList.contains('active') && document.getElementById('cloudViewNewPw').style.display !== 'none') {
+      const t2 = e.target;
+      if (t2 && (t2.id === 'cloudNewPw1' || t2.id === 'cloudNewPw2')) { e.preventDefault(); submitNewPassword(); }
     }
     if (e.key === 'Escape' && document.getElementById('cloudConfirmModal').classList.contains('active')) closeCloudConfirm();
     else if (e.key === 'Escape' && document.getElementById('cloudModal').classList.contains('active')) closeCloudModal();
@@ -9398,7 +9520,7 @@ function executeDeleteAllSparkonten(year) {
 // v4.8.3: DATEN-EXPORT / -IMPORT (JSON)
 // ============================================================
 const BACKUP_APP_NAME = 'Gehaltsplaner Pro';
-const BACKUP_APP_VERSION = '4.16.1';
+const BACKUP_APP_VERSION = '4.17.0';
 
 // Meldung nach dem Schließen des Menüs zeigen (alert() wird von offenen Modals blockiert)
 function dataBackupAlert(message) {
