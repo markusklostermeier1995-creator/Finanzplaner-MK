@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Gehaltsplaner CB">
   <meta name="theme-color" content="#3B82F6">
-  <title>Gehaltsplaner Pro v4.18.0 - Option A (Option A: Tab-Lokalisiert)</title>
+  <title>Gehaltsplaner Pro v4.19.0 - Option A (Option A: Tab-Lokalisiert)</title>
   <script>
     // Async load Chart.js with fallback
     const script = document.createElement('script');
@@ -991,6 +991,18 @@ small { font-size: 12px; color: #999; }
   }
 }
 
+/* v4.19.0: Zeitleiste */
+.period-bar { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.75rem; }
+.period-arrow { flex: 0 0 auto; width: 44px; height: 44px; border: 1.5px solid #93c5fd; background: #f0f9ff; color: #1e40af; border-radius: 8px; font-size: 24px; line-height: 1; cursor: pointer; padding: 0; }
+.period-arrow:active { background: #dbeafe; }
+.period-select { flex: 1 1 auto; min-width: 0; height: 44px; padding: 0 10px; border: 1.5px solid #93c5fd; border-radius: 8px; font-size: 15px; font-weight: 600; background: white; color: #1e293b; box-sizing: border-box; }
+.period-year { flex: 0 0 96px; }
+.kpi-click { cursor: pointer; }
+.kpi-click:hover { border-color: #93c5fd; }
+.kpi-edit { color: #3B82F6; font-size: 12px; text-transform: none; }
+.kpi-sub { font-size: 10px; color: #aaa; margin-top: 3px; min-height: 12px; }
+.income-section { background: #f0f9ff; border: 1.5px solid #bfdbfe; border-radius: 10px; padding: 0.75rem; margin-bottom: 0.75rem; }
+.income-section h3 { margin: 0 0 0.5rem 0; font-size: 13px; color: #1e40af; }
 /* SCHRITT-KARTE: einheitliches Design */
 .schritt-card {
   background: #f0f9ff;
@@ -1205,6 +1217,39 @@ small { font-size: 12px; color: #999; }
     </div>
   </div>
 
+  <!-- v4.19.0: Einkommen-Fenster (Standard fürs Jahr + Ausnahme für einen Monat) -->
+  <div class="modal" id="incomeModal" style="z-index: 99997;">
+    <div class="modal-content" style="max-width: 380px; width: 92%;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2 style="margin: 0; font-size: 18px;">💰 Einkommen</h2>
+        <button onclick="closeIncomeModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; padding: 0;" aria-label="Schließen">✕</button>
+      </div>
+
+      <div class="income-section">
+        <h3>Standard für <span id="standardGehaltYear">2025</span></h3>
+        <div class="schritt-row">
+          <input type="number" id="standardGehaltInput" placeholder="4000" class="schritt-input" onchange="saveStandardGehaltInline()">
+        </div>
+        <div style="margin-top: 6px;">
+          <button onclick="applyUserIncomeToStandard()" style="font-size: 11px; padding: 3px 8px; background: #f0f7ff; border: 1px solid #bfdbfe; border-radius: 4px; color: #1e40af; cursor: pointer;">↙️ Aus Benutzer übernehmen</button>
+        </div>
+        <p class="schritt-hint" style="margin-top: 6px;">Gilt für alle Monate des Jahres, wenn nichts anderes gesetzt ist.</p>
+      </div>
+
+      <div class="income-section">
+        <h3>Nur <span id="incomeModalMonth">Januar</span> abweichend</h3>
+        <div class="schritt-row">
+          <input type="number" id="monthlyIncome" placeholder="Betrag nur für diesen Monat" class="schritt-input">
+          <button onclick="setMonthlyIncome()" class="btn-schritt btn-schritt-primary">Setzen</button>
+          <button onclick="resetToStandardIncome()" class="btn-schritt btn-schritt-success">🔄 Standard</button>
+        </div>
+        <p class="schritt-hint" style="margin-top: 6px;">Standard <span id="yearLabel">2024</span>: <span id="standardDisplay">4395</span></p>
+      </div>
+
+      <button class="btn-primary" style="width: 100%;" onclick="closeIncomeModal()">Fertig</button>
+    </div>
+  </div>
+
   <div class="modal" id="userMenu" style="z-index: 99998;">
     <div class="modal-content" style="max-width: 350px; width: 90%;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
@@ -1291,7 +1336,7 @@ small { font-size: 12px; color: #999; }
         <p>Jahresplanung & Budgetierung deines Einkommens</p>
       </div>
       <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
-        <div class="version">v4.18.0</div>
+        <div class="version">v4.19.0</div>
         <div style="font-size: 10px; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.5px;">🔒 CLOSED BETA</div>
       </div>
     </div>
@@ -1351,56 +1396,19 @@ small { font-size: 12px; color: #999; }
 
     <div id="tab0" class="tab-content active">
 
-      <!-- ROW 1: SCHRITT 1 & 2 -->
-      <div class="grid-row-2x2">
-
-        <!-- SCHRITT 1: JAHR -->
-        <div class="schritt-card">
-          <p class="schritt-label">📅 Schritt 1: Jahr</p>
-          <select id="yearSelect4a" onchange="switchYear()" class="schritt-select"></select>
-        </div>
-
-        <!-- SCHRITT 2: STANDARD GEHALT -->
-        <div class="schritt-card">
-          <p class="schritt-label">⚙️ Schritt 2: Standard Gehalt</p>
-          <div class="schritt-row">
-            <input type="number" id="standardGehaltInput" placeholder="4000" class="schritt-input" onchange="saveStandardGehaltInline()">
-          </div>
-          <div style="margin-top: 4px;">
-            <button onclick="applyUserIncomeToStandard()" style="font-size: 11px; padding: 3px 8px; background: #f0f7ff; border: 1px solid #bfdbfe; border-radius: 4px; color: #1e40af; cursor: pointer;">↙️ Aus Benutzer übernehmen</button>
-          </div>
-          <p class="schritt-hint">€ · Für Jahr <span id="standardGehaltYear">2025</span></p>
-        </div>
-
-      </div>
-
-      <!-- ROW 2: SCHRITT 3 & 4 -->
-      <div class="grid-row-2x2">
-
-        <!-- SCHRITT 3: MONAT -->
-        <div class="schritt-card">
-          <p class="schritt-label">📅 Schritt 3: Monat</p>
-          <select id="monthSelect4a" onchange="switchMonth()" class="schritt-select">
+      <!-- v4.19.0: KOMPAKTE ZEITLEISTE (ersetzt Schritt 1-4) -->
+      <div class="period-bar">
+        <button type="button" class="period-arrow" onclick="stepMonth(-1)" aria-label="Voriger Monat">&#8249;</button>
+        <select id="monthSelect4a" onchange="switchMonth()" class="period-select" aria-label="Monat">
             <option value="0">Januar</option><option value="1">Februar</option><option value="2">März</option><option value="3">April</option><option value="4">Mai</option><option value="5">Juni</option><option value="6">Juli</option><option value="7">August</option><option value="8">September</option><option value="9">Oktober</option><option value="10">November</option><option value="11">Dezember</option>
           </select>
-        </div>
-
-        <!-- SCHRITT 4: MONATLICHES GEHALT -->
-        <div class="schritt-card">
-          <p class="schritt-label">💰 Schritt 4: Monatlich</p>
-          <div class="schritt-row">
-            <input type="number" id="monthlyIncome" placeholder="4395" class="schritt-input">
-            <button onclick="setMonthlyIncome()" class="btn-schritt btn-schritt-primary">Setzen</button>
-            <button onclick="resetToStandardIncome()" class="btn-schritt btn-schritt-success">🔄 Standard</button>
-          </div>
-          <p class="schritt-hint">€ · Standard <span id="yearLabel">2024</span>: €<span id="standardDisplay">4395</span></p>
-        </div>
-
+        <select id="yearSelect4a" onchange="switchYear()" class="period-select period-year" aria-label="Jahr"></select>
+        <button type="button" class="period-arrow" onclick="stepMonth(1)" aria-label="Nächster Monat">&#8250;</button>
       </div>
 
       <!-- KPI ZUSAMMENFASSUNG -->
       <div class="summary-grid" style="margin-bottom: 1.5rem;">
-        <div class="kpi"><div class="kpi-label">Einkommen</div><div class="kpi-value" id="income">€0</div></div>
+        <div class="kpi kpi-click" onclick="openIncomeModal()" role="button" tabindex="0" title="Einkommen ändern"><div class="kpi-label">Einkommen <span class="kpi-edit">✎</span></div><div class="kpi-value" id="income">€0</div><div class="kpi-sub" id="incomeHint"></div></div>
         <div class="kpi"><div class="kpi-label">Ausgaben</div><div class="kpi-value" id="spent">€0</div></div>
         <div class="kpi"><div class="kpi-label">Fixkosten</div><div class="kpi-value" id="fixkostenKpiValue">€0</div><div style="font-size: 10px; color: #aaa; margin-top: 3px;">in Ausgaben enthalten</div></div>
         <div class="kpi"><div class="kpi-label">Sparen</div><div class="kpi-value" id="remaining">€0</div></div>
@@ -1890,9 +1898,20 @@ small { font-size: 12px; color: #999; }
         </p>
       </div>
 
+      <!-- v4.19.0: LAYOUT - KOMPAKTE ZEITLEISTE -->
+      <div class="settings-card" style="background: #fff7ed; border-color: #fed7aa; border-width: 3px;">
+        <p style="font-size: 13px; font-weight: 700; color: #9a3412; margin-bottom: 0.5rem;">🧭 v4.19.0 - Layout: Kompakte Zeitleiste in der Budgetplanung (aktuell)</p>
+        <p style="font-size: 12px; color: #c2410c; line-height: 1.6; margin: 0;">
+          <strong>Neu:</strong> Die vier Schritt-Kacheln (Jahr, Standard Gehalt, Monat, Monatlich) sind durch eine einzige Zeile ersetzt: ‹ Monat · Jahr ›. Mit den Pfeilen blätterst du Monat für Monat, auch über den Jahreswechsel.<br>
+          <strong>Einkommen:</strong> Tippe auf die Kachel "Einkommen" (✎). Im Fenster stellst du den Standard für das Jahr und, falls nötig, einen abweichenden Betrag nur für diesen Monat ein. Unter dem Betrag steht, ob "Standard 2026" oder "abweichend in diesem Monat" gilt.<br>
+          <strong>Ergebnis:</strong> Die Zahlen (Einkommen, Ausgaben, Saldo) und die Kategorien stehen direkt oben. Die Rechenlogik ist unverändert.<br>
+          <strong>Was testen:</strong> Pfeile am iPhone und Mac, Dezember → Januar, Einkommen-Kachel tippen, Standard ändern, Monat abweichend setzen und zurücksetzen.
+        </p>
+      </div>
+
       <!-- v4.18.0: FEATURE - ENDDATUM FIXKOSTEN/SPARKONTEN -->
-      <div class="settings-card" style="background: #f0fdf4; border-color: #86efac; border-width: 3px;">
-        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">⏳ v4.18.0 - Feature: Enddatum für Fixkosten und Sparkonten (aktuell)</p>
+      <div class="settings-card" style="background: #f0fdf4; border-color: #86efac;">
+        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">⏳ v4.18.0 - Feature: Enddatum für Fixkosten und Sparkonten</p>
         <p style="font-size: 12px; color: #15803d; line-height: 1.6; margin: 0;">
           <strong>Neu:</strong> Beim Anlegen oder Bearbeiten von Fixkosten und Sparkonten gibt es "Enddatum (optional)": Monat und Jahr, z. B. Oktober 2027 für einen Kredit. Der gewählte Monat ist der letzte, der noch zählt.<br>
           <strong>Wirkung:</strong> Ab dem Monat danach zählt der Eintrag nicht mehr in Ausgaben bzw. Sparen (Budgetplanung, Fixkosten-/Sparkonten-Summen und Diagramme). Im Budgetplan verschwindet er aus der Kategorie. Die Ansicht folgt dem in der Budgetplanung gewählten Monat.<br>
@@ -1904,9 +1923,9 @@ small { font-size: 12px; color: #999; }
       </div>
 
       <!-- v4.17.2: BUGFIX - ABMELDUNG AUF ANDEREN GERAETEN -->
-      <div class="settings-card" style="background: #f0fdf4; border-color: #86efac;">
-        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">🐛 v4.17.2 - Bugfix: "Auf allen Geräten abmelden" wirkt jetzt sofort</p>
-        <p style="font-size: 12px; color: #15803d; line-height: 1.6; margin: 0;">
+      <div class="settings-card" style="background: #fee2e2; border-color: #fca5a5;">
+        <p style="font-size: 13px; font-weight: 700; color: #991b1b; margin-bottom: 0.5rem;">🐛 v4.17.2 - Bugfix: "Auf allen Geräten abmelden" wirkt jetzt sofort</p>
+        <p style="font-size: 12px; color: #b91c1c; line-height: 1.6; margin: 0;">
           <strong>Problem:</strong> Andere Geräte blieben nach "Auf allen Geräten abmelden" angemeldet, bis ihr Zugangsschlüssel nach etwa einer Stunde ablief.<br>
           <strong>Fix:</strong> Die App prüft die Sitzung beim Start, beim Zurückkehren in die App und vor jedem Abgleich beim Server (höchstens einmal pro Minute). Ist die Sitzung beendet, wird das Gerät abgemeldet, mit Hinweis. Lokale Daten bleiben erhalten.<br>
           <strong>Sicher:</strong> Bei fehlendem Internet oder Serverproblemen bleibst du angemeldet.<br>
@@ -1939,9 +1958,9 @@ small { font-size: 12px; color: #999; }
       </div>
 
       <!-- v4.16.1: BUGFIX - FIXKOSTEN/SPARKONTEN-FELDER IN DER BUDGETPLANUNG -->
-      <div class="settings-card" style="background: #f0fdf4; border-color: #86efac;">
-        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">🐛 v4.16.1 - Bugfix: Fixkosten-/Sparkonten-Felder</p>
-        <p style="font-size: 12px; color: #15803d; line-height: 1.6; margin: 0;">
+      <div class="settings-card" style="background: #fee2e2; border-color: #fca5a5;">
+        <p style="font-size: 13px; font-weight: 700; color: #991b1b; margin-bottom: 0.5rem;">🐛 v4.16.1 - Bugfix: Fixkosten-/Sparkonten-Felder</p>
+        <p style="font-size: 12px; color: #b91c1c; line-height: 1.6; margin: 0;">
           <strong>Problem:</strong> Ein in der Budgetplanung getippter Betrag bei STANDARD/SPAREN-Feldern wurde in der Kategorie-Karte mitgezählt, aber nicht in Ausgaben und nicht gespeichert (z.B. Wohnen 900 vs. Ausgaben 800).<br>
           <strong>Fix:</strong> Diese Felder sind jetzt schreibgeschützt und zeigen immer den Betrag aus dem Tab Fixkosten bzw. Sparkonten. Karte, Modal und Ausgaben stimmen so immer überein.<br>
           <strong>Betrag ändern:</strong> Im Tab Fixkosten/Sparkonten, mit "nur dieses Jahr" oder "ab diesem Jahr".<br>
@@ -6318,6 +6337,36 @@ function switchMonth() {
   }
 }
 
+// v4.19.0: Zeitleiste (Monat vor/zurück, auch über Jahresgrenzen) und Einkommen-Fenster
+function stepMonth(delta) {
+  const ms = document.getElementById('monthSelect4a');
+  const ys = document.getElementById('yearSelect4a');
+  if (!ms || !ys) return;
+  let m = currentMonth + delta, y = currentYear;
+  if (m < 0) { m = 11; y -= 1; }
+  if (m > 11) { m = 0; y += 1; }
+  if (y !== currentYear) {
+    if (![...ys.options].some(o => parseInt(o.value) === y)) { showSuccessMessage('Dieses Jahr ist nicht verfügbar.'); return; }
+    ys.value = y; ms.value = m; currentMonth = m;
+    switchYear();
+  } else {
+    ms.value = m;
+    switchMonth();
+  }
+}
+function openIncomeModal() {
+  const names = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+  document.getElementById('incomeModalMonth').textContent = names[currentMonth] + ' ' + currentYear;
+  document.getElementById('incomeModal').classList.add('active');
+}
+function closeIncomeModal() {
+  document.getElementById('incomeModal').classList.remove('active');
+  try { updateSummary(); } catch (e) {}
+}
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape' && document.getElementById('incomeModal') && document.getElementById('incomeModal').classList.contains('active')) closeIncomeModal();
+  if ((e.key === 'Enter' || e.key === ' ') && e.target && e.target.classList && e.target.classList.contains('kpi-click')) { e.preventDefault(); openIncomeModal(); }
+});
 function switchTab(i) {
   // v4.7.2: Guard — gleicher Tab = kein Re-Render
   if (i === lastActiveTab) return;
@@ -9127,6 +9176,7 @@ function updateSummary() {
     
     // v4.7.1: Batch DOM updates via DOM_CACHE (kein getElementById mehr in Hot-Path)
     if (DOM_CACHE.kpiIncome) DOM_CACHE.kpiIncome.textContent = '€' + Math.round(income).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    { const _h = document.getElementById('incomeHint'); if (_h) { const _md = (allData.users[currentUser].data[currentYear] || {})[monthKey] || {}; _h.textContent = _md.monthlyIncome ? 'abweichend in diesem Monat' : 'Standard ' + currentYear; } }
     if (DOM_CACHE.kpiSpent) DOM_CACHE.kpiSpent.textContent = '€' + Math.round(ausgaben).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     if (DOM_CACHE.kpiRemaining) DOM_CACHE.kpiRemaining.textContent = '€' + Math.round(totalSavings).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     if (DOM_CACHE.kpiSaverate) DOM_CACHE.kpiSaverate.textContent = saverate + '%';
@@ -9673,7 +9723,7 @@ function executeDeleteAllSparkonten(year) {
 // v4.8.3: DATEN-EXPORT / -IMPORT (JSON)
 // ============================================================
 const BACKUP_APP_NAME = 'Gehaltsplaner Pro';
-const BACKUP_APP_VERSION = '4.18.0';
+const BACKUP_APP_VERSION = '4.19.0';
 
 // Meldung nach dem Schließen des Menüs zeigen (alert() wird von offenen Modals blockiert)
 function dataBackupAlert(message) {
