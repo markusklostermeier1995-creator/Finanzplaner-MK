@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Gehaltsplaner CB">
   <meta name="theme-color" content="#3B82F6">
-  <title>Gehaltsplaner Pro v4.17.0 - Option A (Option A: Tab-Lokalisiert)</title>
+  <title>Gehaltsplaner Pro v4.17.1 - Option A (Option A: Tab-Lokalisiert)</title>
   <script>
     // Async load Chart.js with fallback
     const script = document.createElement('script');
@@ -1155,6 +1155,7 @@ small { font-size: 12px; color: #999; }
           </div>
           <p id="cloudSyncResult" style="font-size: 12px; line-height: 1.5; margin: 0.5rem 0 0 0; min-height: 1em;"></p>
         </div>
+        <p style="margin: 0 0 0.75rem 0; font-size: 12px;"><a href="#" id="cloudSignOutAllLink" onclick="cloudSignOutAllAsk(); return false;" style="color: #b91c1c;">Auf allen Geräten abmelden</a></p>
         <div class="fixkosten-modal-actions">
           <button class="fixkosten-modal-btn-save" style="background: #EF4444;" onclick="cloudSignOutClick()">Abmelden</button>
           <button class="fixkosten-modal-btn-cancel" onclick="closeCloudModal()">Schließen</button>
@@ -1290,7 +1291,7 @@ small { font-size: 12px; color: #999; }
         <p>Jahresplanung & Budgetierung deines Einkommens</p>
       </div>
       <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
-        <div class="version">v4.17.0</div>
+        <div class="version">v4.17.1</div>
         <div style="font-size: 10px; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.5px;">🔒 CLOSED BETA</div>
       </div>
     </div>
@@ -1871,9 +1872,21 @@ small { font-size: 12px; color: #999; }
         </p>
       </div>
 
-      <!-- v4.17.0: FEATURE - PASSWORT VERGESSEN -->
+      <!-- v4.17.1: FEATURE - AUF ALLEN GERAETEN ABMELDEN -->
       <div class="settings-card" style="background: #f0fdf4; border-color: #86efac; border-width: 3px;">
-        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">🔑 v4.17.0 - Feature: Passwort vergessen (aktuell)</p>
+        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">🚪 v4.17.1 - Feature: Auf allen Geräten abmelden (aktuell)</p>
+        <p style="font-size: 12px; color: #15803d; line-height: 1.6; margin: 0;">
+          <strong>Neu:</strong> Im Cloud-Konto gibt es "Auf allen Geräten abmelden" (mit Rückfrage). Alle Anmeldungen deines Kontos werden beendet, auch auf Mac, iPhone und im Browser. Nützlich nach einem Passwortwechsel oder bei einem verlorenen Gerät.<br>
+          <strong>Daten:</strong> Lokale Daten und Cloud-Daten bleiben unverändert.<br>
+          <strong>Andere Geräte:</strong> Sie merken die Abmeldung spätestens nach etwa einer Stunde und zeigen dann wieder "Anmelden".<br>
+          <strong>Ohne Internet:</strong> Dann wird nichts abgemeldet und du bekommst einen Hinweis.<br>
+          <strong>Was testen:</strong> Cloud-Konto → "Auf allen Geräten abmelden" → bestätigen. Danach auf dem iPhone die App öffnen: nach spätestens etwa einer Stunde ist die Anmeldung dort weg.
+        </p>
+      </div>
+
+      <!-- v4.17.0: FEATURE - PASSWORT VERGESSEN -->
+      <div class="settings-card" style="background: #f0fdf4; border-color: #86efac;">
+        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">🔑 v4.17.0 - Feature: Passwort vergessen</p>
         <p style="font-size: 12px; color: #15803d; line-height: 1.6; margin: 0;">
           <strong>Link anfordern:</strong> Im Cloud-Konto unter "Anmelden" gibt es jetzt "Passwort vergessen?". Du gibst deine E-Mail ein und bekommst einen Link zum Zurücksetzen. Die App antwortet immer gleich, egal ob die Adresse existiert.<br>
           <strong>Neues Passwort:</strong> Der Link öffnet die App und zeigt "Neues Passwort festlegen" (mindestens 10 Zeichen, zweimal eingeben). Danach bist du angemeldet. Deine Daten bleiben unverändert.<br>
@@ -6712,6 +6725,23 @@ async function cloudSignOutClick() {
   if (s && s.access_token) cloudApi('/auth/v1/logout?scope=local', 'POST', null, s.access_token);
   showSuccessMessage('Abgemeldet');
 }
+function cloudSignOutAllAsk() {
+  openCloudConfirm('Auf allen Geräten abmelden?', 'Alle Geräte, auch dieses, werden von deinem Cloud-Konto abgemeldet (Mac, iPhone, Browser). Deine Daten bleiben auf den Geräten und in der Cloud erhalten. Zum erneuten Anmelden brauchst du E-Mail und Passwort.\n\nAndere Geräte merken die Abmeldung spätestens nach etwa einer Stunde.', 'Überall abmelden', true, cloudSignOutAll);
+}
+async function cloudSignOutAll() {
+  await cloudRefreshIfNeeded();
+  const s = cloudLoadSession();
+  if (!s || !s.access_token) { renderCloudUi(); closeCloudModal(); return; }
+  const res = await cloudApi('/auth/v1/logout?scope=global', 'POST', null, s.access_token);
+  if (res.network) { cloudSetSyncResult('Keine Verbindung. Es wurde nichts abgemeldet. Bitte später erneut versuchen.', true); return; }
+  if (!res.ok && res.status !== 401 && res.status !== 403) { cloudSetSyncResult('Abmelden auf allen Geräten ist fehlgeschlagen (Fehler ' + res.status + '). Es wurde nichts abgemeldet.', true); return; }
+  // 401/403: Sitzung war serverseitig schon beendet -> lokal trotzdem abmelden
+  cloudClearSession();
+  cloudDirty = false; cloudState = 'idle'; clearTimeout(cloudAutoTimer); cloudHideBanner();
+  renderCloudUi();
+  closeCloudModal();
+  showSuccessMessage('Auf allen Geräten abgemeldet');
+}
 async function cloudHandleRedirect() {
   // Bestätigungs-Link aus der E-Mail landet mit #access_token=... auf der App
   const h = (location.hash || '').replace(/^#/, '');
@@ -9520,7 +9550,7 @@ function executeDeleteAllSparkonten(year) {
 // v4.8.3: DATEN-EXPORT / -IMPORT (JSON)
 // ============================================================
 const BACKUP_APP_NAME = 'Gehaltsplaner Pro';
-const BACKUP_APP_VERSION = '4.17.0';
+const BACKUP_APP_VERSION = '4.17.1';
 
 // Meldung nach dem Schließen des Menüs zeigen (alert() wird von offenen Modals blockiert)
 function dataBackupAlert(message) {
