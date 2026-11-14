@@ -10,7 +10,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Gehaltsplaner CB">
   <meta name="theme-color" content="#3B82F6">
-  <title>Gehaltsplaner Pro v4.21.0 - Option A (Option A: Tab-Lokalisiert)</title>
+  <title>Gehaltsplaner Pro v4.21.0.1 - Option A (Option A: Tab-Lokalisiert)</title>
   <script>
     // Async load Chart.js with fallback
     const script = document.createElement('script');
@@ -1333,7 +1333,7 @@ small { font-size: 12px; color: #999; }
         <p>Jahresplanung & Budgetierung deines Einkommens</p>
       </div>
       <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
-        <div class="version">v4.21.0</div>
+        <div class="version">v4.21.0.1</div>
         <div style="font-size: 10px; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 2px 6px; border-radius: 3px; letter-spacing: 0.5px;">🔒 CLOSED BETA</div>
       </div>
     </div>
@@ -1899,9 +1899,20 @@ small { font-size: 12px; color: #999; }
         </p>
       </div>
 
+      <!-- v4.21.0.1: BUGFIX - APP-UPDATE MELDET FALSCHE VERSION -->
+      <div class="settings-card" style="background: #fee2e2; border-color: #fca5a5; border-width: 3px;">
+        <p style="font-size: 13px; font-weight: 700; color: #991b1b; margin-bottom: 0.5rem;">🐛 v4.21.0.1 - Bugfix: App Update meldet falsche Version (aktuell)</p>
+        <p style="font-size: 12px; color: #b91c1c; line-height: 1.6; margin: 0;">
+          <strong>Problem:</strong> Seit v4.20.1 meldete die App nach jedem Update "Das Update wurde noch nicht geladen (es läuft weiterhin v4.20.0)" und zeigte dauerhaft "Neue Version verfügbar", obwohl die neue Version lief. Die App verglich mit einer fest eingetragenen Versionsnummer, die bei v4.20.1 und v4.21.0 nicht mitgeändert wurde.<br>
+          <strong>Fix:</strong> Die installierte Version wird jetzt aus dem Seitentitel gelesen, also aus derselben Zahl, die auch die Update-Prüfung auf dem Server vergleicht. Es gibt keine zweite Zahl mehr, die man vergessen kann. Das gilt auch für die Versionsangabe in Datensicherungen (Export).<br>
+          <strong>Text:</strong> Im Update-Dialog stand noch der Hinweis auf den entfallenen Button "Speichern". Jetzt steht dort, dass Eingaben automatisch gespeichert werden.<br>
+          <strong>Was testen:</strong> Benutzermenü (☰) → "App Update": Installiert zeigt v4.21.0.1. Button tippen: "Du hast die aktuelle Version". Nach dem nächsten Update: keine Warnung mehr, stattdessen "App aktualisiert auf …".
+        </p>
+      </div>
+
       <!-- v4.21.0: FEATURE - AUTOMATISCH SPEICHERN -->
-      <div class="settings-card" style="background: #f0fdf4; border-color: #86efac; border-width: 3px;">
-        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">💾 v4.21.0 - Feature: Budgetplanung speichert automatisch (aktuell)</p>
+      <div class="settings-card" style="background: #f0fdf4; border-color: #86efac;">
+        <p style="font-size: 13px; font-weight: 700; color: #166534; margin-bottom: 0.5rem;">💾 v4.21.0 - Feature: Budgetplanung speichert automatisch</p>
         <p style="font-size: 12px; color: #15803d; line-height: 1.6; margin: 0;">
           <strong>Problem bisher:</strong> Eingetippte Beträge wurden erst mit dem Button "Speichern" gesichert. Wer vorher den Monat wechselte, verlor sie ohne Warnung.<br>
           <strong>Neu:</strong> Jeder geänderte Betrag wird sofort übernommen. Der Button "Speichern" entfällt, unter den Kategorien steht "Änderungen werden automatisch gespeichert". Der Abgleich mit der Cloud läuft wie bisher.<br>
@@ -9643,7 +9654,9 @@ function executeDeleteAllSparkonten(year) {
 // v4.8.3: DATEN-EXPORT / -IMPORT (JSON)
 // ============================================================
 const BACKUP_APP_NAME = 'Gehaltsplaner Pro';
-const BACKUP_APP_VERSION = '4.20.0';
+// v4.21.0.1: Einzige Quelle der Versionsnummer ist der <title> (wird bei jedem Release ohnehin gesetzt).
+// Vorher stand hier eine feste Zahl, die bei v4.20.1 und v4.21.0 nicht mitgezogen wurde.
+const BACKUP_APP_VERSION = (/^Gehaltsplaner Pro v([0-9]+(?:\.[0-9]+)*)/.exec(document.title) || [])[1] || '0';
 
 // Meldung nach dem Schließen des Menüs zeigen (alert() wird von offenen Modals blockiert)
 function dataBackupAlert(message) {
@@ -9878,7 +9891,7 @@ function applyAppUpdate() {
     const ok = confirm(
       'App Update auf v' + target + ' installieren?\n\n' +
       'Die App wird neu geladen. Deine gespeicherten Daten bleiben erhalten. ' +
-      'Nicht gespeicherte Eingaben (Button "Speichern" in der Budgetplanung) gehen verloren.'
+      'Eingaben in der Budgetplanung werden automatisch gespeichert.'
     );
     if (!ok) return;
     try {
